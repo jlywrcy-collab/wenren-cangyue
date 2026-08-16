@@ -1,0 +1,31 @@
+{
+  "name": "闻人苍月 · 梦女同人写作台",
+  "short_name": "闻人写作台",
+  "description": "与闻人苍月的梦女同人写作台：梦女互动、小说续写、润色，内置仙魔变知识库",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1524",
+  "theme_color": "#0d1524",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

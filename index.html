@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1524">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="闻人写作台">
 <title>闻人苍月 · 梦女同人写作台</title>
 <style>:root {
   --bg: #0d1524; --bg2: #131e33; --bg3: #1a2a45;
@@ -214,6 +221,7 @@ body {
   <button onclick="toggleLib()">📖 资料</button>
   <button onclick="openSearch()">🔍 搜索</button>
   <button onclick="openSaved()">⭐ 素材</button>
+  <button onclick="quickCloudBackup()" title="一键备份到 GitHub 私有仓库">☁️ 备份</button>
   <button onclick="openStats()">📊 统计</button>
   <button id="exportBtn" onclick="toggleExportMenu()">📤 导出</button>
   <select id="themeSel" onchange="setTheme(this.value)" title="切换主题" style="max-width:130px;">
@@ -303,6 +311,14 @@ body {
       <label for="backupInput" style="flex:1;background:var(--bg2);border:1px dashed var(--line);color:var(--dim);border-radius:8px;padding:8px 12px;font-size:13px;text-align:center;cursor:pointer;">📥 导入备份（选 .json 文件）</label>
       <input type="file" id="backupInput" accept=".json" style="display:none" onchange="importBackup(this)">
     </div>
+    <label>☁️ 云备份（存到你 GitHub 的私有仓库，永不丢失）</label>
+    <input id="setGitToken" type="password" placeholder="GitHub Token（可选，用于云备份；建议用权限小的 token）">
+    <div class="btn-row">
+      <button onclick="cloudBackup()" style="background:var(--accent);color:#fff;border-color:var(--accent);">☁️ 立即备份到云端</button>
+      <button onclick="cloudRestore()">🔄 从云端恢复</button>
+      <button onclick="cloudList()">📋 云端备份列表</button>
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-top:4px;">☁️ 云备份把全部数据上传到你的 GitHub 私有仓库（默认 jlywrcy-collab/wenren-backup），换电脑/清浏览器都能找回。Token 获取：GitHub → Settings → Developer settings → Personal access tokens → 勾 repo 权限。</div>
     <div class="btn-row">
       <button class="primary" onclick="saveSettings()">保存</button>
       <button onclick="closeSettings()">关闭</button>
@@ -400,6 +416,71 @@ const CHARACTER_CARDS = [
   { name: '西夷·大莽', content: `【西夷与大莽】西夷六十年前被张院长打垮，沦为沙漠流寇（"秋蝗"），被闻人苍月"养狗"般畜养并秘密合作——这是他政治上的致命把柄。大莽：老皇帝湛台莽传位义子湛台浅唐（与林夕结盟）；闻人苍月最终为大莽兵马大元帅。` },
 ];
 
+/* ---------- 存储层：IndexedDB 大容量优先，回退 localStorage ---------- */
+// 用一个简单 KV 封装：优先 IndexedDB（数百 MB），失败回退 localStorage
+const Storage = (function(){
+  let db = null;
+  const dbName = 'wenren-storage';
+  const storeName = 'kv';
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!('indexedDB' in window)) return reject(new Error('no indexedDB'));
+        const req = indexedDB.open(dbName, 1);
+        req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(storeName)) req.result.createObjectStore(storeName); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      } catch(e) { reject(e); }
+    });
+  }
+  async function getDB() {
+    if (db) return db;
+    db = await openDB();
+    return db;
+  }
+  return {
+    async setItem(key, value) {
+      try {
+        const d = await getDB();
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction(storeName, 'readwrite');
+          tx.objectStore(storeName).put(value, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch(e) {
+        try { localStorage.setItem(key, value); } catch(e2) {}
+      }
+    },
+    async getItem(key) {
+      try {
+        const d = await getDB();
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction(storeName, 'readonly');
+          const req = tx.objectStore(storeName).get(key);
+          req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+          req.onerror = () => reject(req.error);
+        });
+      } catch(e) {
+        try { return localStorage.getItem(key); } catch(e2) { return null; }
+      }
+    },
+    async removeItem(key) {
+      try {
+        const d = await getDB();
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction(storeName, 'readwrite');
+          tx.objectStore(storeName).delete(key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch(e) {
+        try { localStorage.removeItem(key); } catch(e2) {}
+      }
+    }
+  };
+})();
+
 /* ---------- 状态 ---------- */
 let sessions = {};      // id -> {title, mode, messages:[{role,content}], draft:""}
 let currentId = null;
@@ -431,6 +512,8 @@ let savedItems = JSON.parse(localStorage.getItem('hm_saved') || '[]');
 let autoTitle = localStorage.getItem('hm_autotitle') !== '0';
 // 主题
 let theme = localStorage.getItem('hm_theme') || 'default';
+// GitHub Token（云备份用）
+let gitToken = localStorage.getItem('hm_gittoken') || '';
 
 const SYSTEM_SEED = `你是一位擅长撰写「闻人苍月」梦女同人小说的写手，同时也是一位出色的角色扮演者。
 故事背景：云秦帝国，碧落陵。闻人苍月——镇西大将军，圣师阶无敌的御剑圣师，枭雄，睥睨天下，但感情世界一片空白。
@@ -455,14 +538,29 @@ function init() {
   const sel = document.getElementById('themeSel');
   if (sel) sel.value = theme;
   document.getElementById('apiKey').value = apiKey;
-  // 载入会话
+  // 载入会话：先同步读 localStorage 立即可用，再异步检查 IndexedDB（大容量版）
+  let loaded = false;
   try { sessions = JSON.parse(localStorage.getItem('hm_sessions') || '{}'); } catch(e){ sessions = {}; }
-  if (!Object.keys(sessions).length) newSession();
-  else { currentId = Object.keys(sessions)[0]; renderSessionList(); renderChat(); }
-  renderDraftBar();
-  renderPresetBar();
-  renderCharBar();
-  renderCardTag();
+  loaded = Object.keys(sessions).length > 0;
+  // IndexedDB 异步增强：如果里面数据更新（比如容量更大时写满过），用之
+  (async () => {
+    try {
+      const big = await Storage.getItem('hm_sessions');
+      if (big) {
+        const parsed = JSON.parse(big);
+        // 取消息数量更多的一方（IndexedDB 通常更新更全）
+        const cnt = o => Object.values(o).reduce((n, s) => n + (s.messages ? s.messages.length : 0), 0);
+        if (cnt(parsed) >= cnt(sessions)) { sessions = parsed; loaded = true; }
+      }
+    } catch(e) {}
+    if (!loaded) newSession();
+    else { currentId = Object.keys(sessions)[0]; renderSessionList(); renderChat(); }
+    renderDraftBar();
+    renderPresetBar();
+    renderCharBar();
+    renderCardTag();
+  })();
+  if (loaded) { currentId = Object.keys(sessions)[0]; renderSessionList(); renderChat(); }
   // 点击其他区域关闭导出菜单
   document.addEventListener('click', (e) => {
     const menu = document.getElementById('exportMenu');
@@ -470,11 +568,25 @@ function init() {
       menu.classList.remove('show');
     }
   });
+  // 注册 Service Worker（PWA 离线/安装支持）
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* 非 HTTPS 或受限环境时静默 */ });
+  }
+  // 云备份提醒：超过 7 天没备份则提醒
+  try {
+    const last = parseInt(localStorage.getItem('hm_lastcloud') || '0');
+    if (last && (Date.now() - last > 7 * 24 * 3600 * 1000)) {
+      setTimeout(function(){ toast('⏰ 距离上次云备份已超过 7 天，记得点「☁️ 云备份」哦'); }, 1500);
+    }
+  } catch(e){}
   toast('欢迎回来。愿你与闻人大将军有一段好故事。');
 }
 
 function saveAll() {
-  localStorage.setItem('hm_sessions', JSON.stringify(sessions));
+  const sessionsJson = JSON.stringify(sessions);
+  localStorage.setItem('hm_sessions', sessionsJson);
+  // 双写镜像到 IndexedDB（大容量，防 localStorage 5MB 上限）
+  Storage.setItem('hm_sessions', sessionsJson);
   localStorage.setItem('hm_apiKey', apiKey);
   localStorage.setItem('hm_model', model);
   localStorage.setItem('hm_temp', temp);
@@ -487,6 +599,7 @@ function saveAll() {
   localStorage.setItem('hm_saved', JSON.stringify(savedItems));
   localStorage.setItem('hm_autotitle', autoTitle ? '1' : '0');
   localStorage.setItem('hm_theme', theme);
+  localStorage.setItem('hm_gittoken', gitToken);
 }
 
 function newSession() {
@@ -1233,6 +1346,8 @@ function openSettings() {
   document.getElementById('setPresets').value = pText;
   document.getElementById('setPacks').value = JSON.stringify(stylePacks, null, 2);
   document.getElementById('setCards').value = JSON.stringify(charCards, null, 2);
+  document.getElementById('setAutoTitle').checked = autoTitle;
+  document.getElementById('setGitToken').value = gitToken;
   document.getElementById('overlay').classList.add('show');
 }
 function closeSettings() { document.getElementById('overlay').classList.remove('show'); }
@@ -1241,6 +1356,7 @@ function saveSettings() {
   model = document.getElementById('setModel').value;
   temp = parseFloat(document.getElementById('setTemp').value) || 1.0;
   autoTitle = document.getElementById('setAutoTitle').checked;
+  gitToken = document.getElementById('setGitToken').value.trim();
   persona = document.getElementById('setPersona').value.trim();
   // 解析预设提示词
   const newPresets = {};
@@ -1321,6 +1437,130 @@ function importBackup(input) {
     input.value = '';
   };
   reader.readAsText(file, 'utf-8');
+}
+
+/* ---------- ☁️ 云备份（GitHub 私有仓库） ---------- */
+const CLOUD_REPO = 'jlywrcy-collab/wenren-backup'; // 云备份私有仓库
+
+// 生成当前全部数据的备份对象
+function buildBackupData() {
+  return {
+    app: '闻人苍月梦女写作台',
+    version: 4,
+    time: new Date().toISOString(),
+    sessions, apiKey, model, temp, persona, presets, stylePacks, activePack,
+    charCards, activeCard, savedItems, autoTitle, theme
+  };
+}
+// 调用 GitHub API（浏览器端 fetch，GitHub API 支持 CORS）
+async function ghApi(method, path, body) {
+  const tk = gitToken || (document.getElementById('setGitToken') && document.getElementById('setGitToken').value.trim());
+  if (!tk) throw new Error('请先在 ⚙ 设置里填写 GitHub Token');
+  const resp = await fetch('https://api.github.com' + path, {
+    method: method,
+    headers: {
+      'Authorization': 'token ' + tk,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'wenren-writing-desk'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!resp.ok) {
+    let msg = 'GitHub API ' + resp.status;
+    try { const j = await resp.json(); if (j.message) msg += ': ' + j.message; } catch(e) {}
+    throw new Error(msg);
+  }
+  return resp.status === 204 ? null : resp.json();
+}
+// ☁️ 立即备份到云端
+async function cloudBackup() {
+  try {
+    if (!gitToken && document.getElementById('setGitToken')) gitToken = document.getElementById('setGitToken').value.trim();
+    if (!gitToken) { toast('请先在 ⚙ 设置里填 GitHub Token'); openSettings(); return; }
+    toast('☁️ 正在上传备份…');
+    const data = buildBackupData();
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))); // 中文安全 base64
+    const name = 'backup-' + new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19) + '.json';
+    // 检查仓库是否存在，不存在则尝试创建（需要 token 有 repo 权限）
+    let created = false;
+    try {
+      await ghApi('GET', '/repos/' + CLOUD_REPO);
+    } catch (e) {
+      if (e.message.includes('404')) {
+        const owner = CLOUD_REPO.split('/')[0];
+        try {
+          await ghApi('POST', '/user/repos', { name: CLOUD_REPO.split('/')[1], private: true, auto_init: true, description: '闻人苍月写作台云备份（自动生成）' });
+          created = true;
+        } catch (e2) { throw new Error('云端仓库不存在且自动创建失败：' + e2.message); }
+      } else throw e;
+    }
+    // 上传文件（contents API）
+    await ghApi('PUT', '/repos/' + CLOUD_REPO + '/contents/' + name, {
+      message: '自动备份 ' + new Date().toLocaleString('zh-CN'),
+      content: content
+    });
+    // 记录上次备份时间
+    localStorage.setItem('hm_lastcloud', Date.now());
+    toast('☁️ 备份成功：' + name);
+  } catch (e) {
+    toast('☁️ 备份失败：' + e.message);
+  }
+}
+// 🔄 从云端恢复（列出所有备份，选一个恢复）
+async function cloudList() {
+  try {
+    if (!gitToken) { toast('请先在 ⚙ 设置里填 GitHub Token'); openSettings(); return; }
+    const files = await ghApi('GET', '/repos/' + CLOUD_REPO + '/contents/');
+    if (!Array.isArray(files) || !files.length) { toast('云端还没有备份'); return; }
+    const list = files.filter(f => f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
+    if (!list.length) { toast('云端还没有备份'); return; }
+    const label = prompt('选择要恢复的备份（输入序号）：\n' + list.map((f, i) => (i + 1) + '. ' + f.name + ' (' + new Date(f.name.slice(7, 26).replace(/-/g, ':').replace('T', ' ')).toLocaleString('zh-CN') + ')').join('\n'));
+    if (label === null) return;
+    const idx = parseInt(label.trim()) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= list.length) { toast('序号无效'); return; }
+    await doCloudRestore(list[idx].name);
+  } catch (e) {
+    toast('☁️ 读取备份列表失败：' + e.message);
+  }
+}
+// 实际恢复指定备份文件
+async function doCloudRestore(fileName) {
+  try {
+    if (!confirm('从云端恢复将覆盖当前所有数据，确定继续？')) return;
+    toast('☁️ 正在下载备份…');
+    const meta = await ghApi('GET', '/repos/' + CLOUD_REPO + '/contents/' + fileName);
+    const jsonStr = decodeURIComponent(escape(atob(meta.content)));
+    const d = JSON.parse(jsonStr);
+    if (!d || !d.sessions) throw new Error('备份文件格式不正确');
+    sessions = d.sessions || {};
+    if (typeof d.apiKey === 'string') apiKey = d.apiKey;
+    if (d.model) model = d.model;
+    if (typeof d.temp === 'number') temp = d.temp;
+    if (typeof d.persona === 'string') persona = d.persona;
+    if (d.presets) presets = d.presets;
+    if (d.stylePacks) stylePacks = d.stylePacks;
+    if (typeof d.activePack === 'string') activePack = d.activePack;
+    if (d.charCards) charCards = d.charCards;
+    if (typeof d.activeCard === 'string') activeCard = d.activeCard;
+    if (Array.isArray(d.savedItems)) savedItems = d.savedItems;
+    if (typeof d.autoTitle === 'boolean') autoTitle = d.autoTitle;
+    if (typeof d.theme === 'string') theme = d.theme;
+    saveAll();
+    currentId = Object.keys(sessions)[0] || null;
+    document.getElementById('apiKey').value = apiKey;
+    document.documentElement.setAttribute('data-theme', theme);
+    const sel = document.getElementById('themeSel'); if (sel) sel.value = theme;
+    renderSessionList(); renderPresetBar(); renderPackTag(); renderCardTag(); renderCharBar();
+    if (currentId) renderChat(); else newSession();
+    toast('✅ 云端备份已恢复');
+  } catch (e) {
+    toast('☁️ 恢复失败：' + e.message);
+  }
+}
+// 顶栏快捷入口：一键云备份
+async function quickCloudBackup() {
+  await cloudBackup();
 }
 
 /* ---------- 人设一致性检查 ---------- */
