@@ -88,11 +88,14 @@ body {
   .m-collapse { display: none; }
   .m-collapse.open { display: flex; }
   /* 手机端：底部分栏图标条显示，各面板默认折叠 */
-  #iconBar { display: flex; gap: 2px; margin-bottom: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #iconBar { display: flex !important; gap: 2px; margin-bottom: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   #iconBar .ic-btn { flex: none; }
   #modeBar, #moreTools, #presetBar, #charBar, #extraRow, #uploadBar { display: none !important; }
   #modeBar.ic-open, #moreTools.ic-open, #presetBar.ic-open, #charBar.ic-open, #extraRow.ic-open, #uploadBar.ic-open { display: flex !important; }
   #uploadBar { margin-bottom: 4px; }
+  /* 图标条接管提示词/人物卡，隐藏旧的折叠头 */
+  .fold-head { display: none !important; }
+  .fold-head ~ #presetBar, .fold-head ~ #charBar { display: flex !important; }
   /* 手机端：上传栏隐藏（进更多菜单），底稿条压缩 */
   #uploadBar { display: none !important; }
   #draftBar { margin-bottom: 4px; font-size: 11px; }
@@ -122,9 +125,11 @@ body.compact #chatBox { padding: 10px; }
 body.compact .msg { max-width: 92%; }
 body.compact #uploadBar { display: none !important; }
 /* 紧凑模式：底部分栏图标条 + 面板折叠 */
-body.compact #iconBar { display: flex; gap: 2px; margin-bottom: 4px; overflow-x: auto; }
+body.compact #iconBar { display: flex !important; gap: 2px; margin-bottom: 4px; overflow-x: auto; }
 body.compact #modeBar, body.compact #moreTools, body.compact #presetBar, body.compact #charBar, body.compact #extraRow, body.compact #uploadBar { display: none !important; }
 body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #presetBar.ic-open, body.compact #charBar.ic-open, body.compact #extraRow.ic-open, body.compact #uploadBar.ic-open { display: flex !important; }
+body.compact .fold-head { display: none !important; }
+body.compact .fold-head ~ #presetBar, body.compact .fold-head ~ #charBar { display: flex !important; }
 /* ---------- 主区 ---------- */
 #main { flex: 1; display: flex; min-height: 0; }
 /* 折叠头（提示词/人物卡）：桌面完整模式隐藏，手机/紧凑模式显示 */
@@ -132,6 +137,8 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
 /* 手机端底部分栏图标条 */
 #iconBar { display: none; }
 .ic-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; background: none; border: none; color: var(--dim); cursor: pointer; padding: 2px 6px; font-size: 16px; border-radius: 6px; }
+.ic-btn span { font-size: 9px; line-height: 1; }
+.ic-btn.active { color: var(--accent); background: var(--accent-soft); }
 .ic-btn span { font-size: 9px; line-height: 1; }
 .ic-btn.active { color: var(--accent); background: var(--accent-soft); }
 /* 侧栏 */
