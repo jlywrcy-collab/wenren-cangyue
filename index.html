@@ -1259,11 +1259,17 @@ async function send(text, opts) {
   const modelTag = model === 'deepseek-reasoner' ? ' <span style="font-size:11px;color:var(--gold);border:1px solid var(--gold);border-radius:8px;padding:0 6px;margin-left:6px;">🧠 深度思考</span>' : '';
   replyDiv.innerHTML = `<div class="name">${escapeHtml(assistantName())}${modelTag}</div>` +
     `<details class="think-box" style="display:none;"><summary>💭 思考过程（点击展开）</summary><div class="think-body"></div></details>` +
-    `<div class="replyBody"><span class="status">思索中…</span></div>`;
+    `<div class="replyBody"><span class="status">思索中…</span></div>` +
+    `<div class="msg-tools" style="display:none;"><button class="copy-btn">复制</button><button class="save-btn">⭐ 收藏</button><button class="edit-btn">编辑</button><button class="star-btn">☆ 星标</button><button class="branch-btn">🌿 分支</button><button class="regen-btn">🔄 重写</button><button class="del-btn">🗑 删除</button></div>`;
   box.appendChild(replyDiv);
   const thinkBox = replyDiv.querySelector('.think-box');
   const thinkBody = replyDiv.querySelector('.think-body');
   const replyBody = replyDiv.querySelector('.replyBody');
+  // 流式容器的按钮：仅在最终状态（full 有内容时）显示；终止后由 renderChat 全量重建接管
+  const setReplyTools = (show) => {
+    const tools = replyDiv.querySelector('.msg-tools');
+    if (tools) tools.style.display = show ? 'flex' : 'none';
+  };
   box.scrollTop = box.scrollHeight;
 
   // 发送按钮 -> 中断按钮
@@ -1359,23 +1365,32 @@ async function send(text, opts) {
     sendBtn.textContent = '发送';
     sendBtn.disabled = false;
     ta.focus();
-    if (full) {
-      replyBody.textContent = full;
-      pushMsg('assistant', full, { think: think });
-      renderChat();
-    } else if (think && stopped) {
-      // 终止且只有思考过程（reasoner 思考阶段被停止）：也保存消息，带按钮
-      replyBody.textContent = '（正文未生成，已停止）';
-      pushMsg('assistant', '（正文未生成，已停止）', { think: think });
-      renderChat();
-    } else if (!stopped) {
-      // 没有内容且没被中断，可能是错误
-      replyDiv.remove();
-      renderChat();
-    } else {
-      // 终止且无任何内容：清理临时容器
-      replyDiv.remove();
-      renderChat();
+    // 无论什么情况，都保存并渲染（确保按钮齐全）；无内容则清理
+    try {
+      if (full || think) {
+        if (full) {
+          replyBody.textContent = full;
+          pushMsg('assistant', full, { think: think });
+        } else {
+          // 只有思考过程：正文区给占位，思考过程保留可展开
+          replyBody.textContent = '（正文未生成，已停止）';
+          pushMsg('assistant', '（正文未生成，已停止）', { think: think });
+        }
+        renderChat();
+      } else {
+        // 完全没内容：清理临时容器
+        replyDiv.remove();
+        renderChat();
+      }
+    } catch (renderErr) {
+      // 渲染失败兜底：确保按钮可见
+      try {
+        replyBody.textContent = full || '（正文未生成，已停止）';
+        const tools = replyDiv.querySelector('.msg-tools');
+        if (tools) tools.style.display = 'flex';
+        thinkBox.style.display = think ? '' : 'none';
+      } catch (e2) {}
+      toast('渲染异常，请刷新重试：' + renderErr.message);
     }
   }
 }
