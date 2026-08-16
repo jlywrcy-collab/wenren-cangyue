@@ -1355,8 +1355,17 @@ async function send(text, opts) {
       replyBody.textContent = full;
       pushMsg('assistant', full, { think: think });
       renderChat();
+    } else if (think && stopped) {
+      // 终止且只有思考过程（reasoner 思考阶段被停止）：也保存消息，带按钮
+      replyBody.textContent = '（正文未生成，已停止）';
+      pushMsg('assistant', '（正文未生成，已停止）', { think: think });
+      renderChat();
     } else if (!stopped) {
       // 没有内容且没被中断，可能是错误
+      replyDiv.remove();
+      renderChat();
+    } else {
+      // 终止且无任何内容：清理临时容器
       replyDiv.remove();
       renderChat();
     }
