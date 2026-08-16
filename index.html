@@ -1283,6 +1283,7 @@ async function send(text, opts) {
   streamCtrl = new AbortController();
 
   let full = '';
+  let think = ''; // reasoner 的思考过程（try 外声明，finally 需要访问）
   let stopped = false;
   try {
     // 组装请求体：deepseek-reasoner 不支持 temperature，需条件化
@@ -1307,7 +1308,6 @@ async function send(text, opts) {
     const reader = resp.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
-    let think = ''; // reasoner 的思考过程
     replyBody.textContent = '';
     const showThink = () => {
       thinkBox.style.display = '';
