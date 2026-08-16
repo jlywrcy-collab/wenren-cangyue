@@ -264,9 +264,8 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
   #sidebar.open { left: 0; }
   #main { position: relative; }
   .msg { max-width: 92%; }
-  /* 侧栏遮罩：打开时盖住聊天区，点击关闭 */
+  /* 侧栏遮罩：打开时盖住聊天区，点击关闭（显示由 JS toggleSidebar 控制） */
   #sideMask { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 49; display: none; }
-  #sidebar.open ~ #sideMask { display: block; }
 }
 </style>
 </head>
@@ -672,6 +671,12 @@ function init() {
       menu.classList.remove('show');
     }
   });
+  // 窗口尺寸变化时校正侧栏遮罩
+  window.addEventListener('resize', () => {
+    const s = document.getElementById('sidebar');
+    const mask = document.getElementById('sideMask');
+    if (mask && s) mask.style.display = (s.classList.contains('open') && window.innerWidth <= 700) ? 'block' : 'none';
+  });
   // 移动端适配：窄屏显示「⚙ 更多」折叠按钮
   if (window.innerWidth <= 760) {
     const mb = document.querySelector('.m-more-btn');
@@ -738,6 +743,8 @@ function toggleSidebar(force) {
   const s = document.getElementById('sidebar');
   const open = force !== undefined ? force : !s.classList.contains('open');
   s.classList.toggle('open', open);
+  const mask = document.getElementById('sideMask');
+  if (mask) mask.style.display = (open && window.innerWidth <= 700) ? 'block' : 'none';
 }
 
 /* ---------- 渲染 ---------- */
