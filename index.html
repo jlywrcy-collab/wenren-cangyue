@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>闻人苍月 · 梦女同人写作台</title>
+<style>
+:root {
+  --bg: #0d1524; --bg2: #131e33; --bg3: #1a2a45;
+  --line: #2a3d5f; --txt: #dbe6f5; --dim: #8fa5c5;
+  --accent: #4d8fd4; --accent2: #c3272b; --gold: #d9b45b;
+  --ok: #5cb877; --warn: #e3c070;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html,body { height: 100%; }
+body {
+  font-family: "PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  background: var(--bg); color: var(--txt); font-size: 15px; line-height: 1.7;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+/* ---------- 顶栏 ---------- */
+#topbar {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: var(--bg2); border-bottom: 1px solid var(--line); flex: none;
+  flex-wrap: wrap;
+}
+#topbar .logo { font-weight: 700; color: var(--accent); white-space: nowrap; }
+#topbar .logo small { color: var(--dim); font-weight: 400; margin-left: 6px; }
+#topbar button, #topbar select, #topbar input {
+  background: var(--bg3); color: var(--txt); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+}
+#topbar button:hover { border-color: var(--accent); }
+#topbar select { max-width: 150px; }
+#apiKey { width: 200px; }
+/* ---------- 主区 ---------- */
+#main { flex: 1; display: flex; min-height: 0; }
+/* 侧栏 */
+#sidebar {
+  width: 230px; background: var(--bg2); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; flex: none; overflow: hidden;
+}
+#sidebar h3 {
+  font-size: 12px; color: var(--dim); padding: 10px 12px 6px; letter-spacing: 1px;
+}
+#sessionList { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+.sess {
+  padding: 8px 10px; border-radius: 8px; cursor: pointer; margin-bottom: 4px;
+  font-size: 13px; color: var(--dim); display: flex; justify-content: space-between; align-items: center;
+}
+.sess:hover { background: var(--bg3); color: var(--txt); }
+.sess.active { background: var(--bg3); color: var(--txt); border-left: 3px solid var(--accent); }
+.sess .del { opacity: 0; color: var(--warn); padding: 0 4px; }
+.sess:hover .del { opacity: 1; }
+#sidebar .btn-row { padding: 8px; display: flex; gap: 6px; }
+#sidebar .btn-row button { flex: 1; }
+/* 聊天区 */
+#chatArea { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#chatBox { flex: 1; overflow-y: auto; padding: 16px; }
+.msg { max-width: 85%; margin-bottom: 14px; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; word-break: break-word; }
+.msg.user { background: var(--accent); color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+.msg.assistant { background: var(--bg3); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.system { background: transparent; color: var(--dim); font-size: 12px; text-align: center; max-width: 100%; }
+.msg .name { font-weight: 700; margin-bottom: 4px; color: var(--gold); font-size: 13px; }
+.msg.user .name { color: #fff; }
+.msg .status { color: var(--dim); font-size: 12px; }
+/* 输入区 */
+#inputArea { flex: none; border-top: 1px solid var(--line); background: var(--bg2); padding: 10px 12px; }
+#draftBar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
+#draftBar .file-chip { background: var(--bg3); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; display: inline-flex; align-items: center; gap: 6px; }
+#draftBar .file-chip button { background: none; border: none; color: var(--warn); cursor: pointer; font-size: 14px; }
+#modeBar { display: flex; gap: 6px; margin-bottom: 8px; }
+.mode-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--bg3); color: var(--dim); cursor: pointer; font-size: 13px; }
+.mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+#inputRow { display: flex; gap: 8px; align-items: flex-end; }
+#prompt {
+  flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--txt);
+  border-radius: 12px; padding: 10px 12px; resize: none; min-height: 48px; max-height: 160px; font-size: 15px; line-height: 1.6; font-family: inherit;
+}
+#prompt:focus { outline: none; border-color: var(--accent); }
+#sendBtn {
+  background: var(--accent); color: #fff; border: none; border-radius: 12px;
+  padding: 10px 18px; font-size: 15px; cursor: pointer; flex: none;
+}
+#sendBtn:disabled { opacity: .5; cursor: not-allowed; }
+/* 上传区 */
+#uploadBar { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--dim); flex-wrap: wrap; }
+#uploadBar label { cursor: pointer; color: var(--accent); }
+#uploadBar label:hover { text-decoration: underline; }
+#contextNote { color: var(--dim); font-size: 11px; }
+/* 弹出层 */
+#overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+  align-items: center; justify-content: center; z-index: 100;
+}
+#overlay.show { display: flex; }
+#settings {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 20px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+}
+#settings h2 { color: var(--accent); margin-bottom: 12px; font-size: 17px; }
+#settings label { display: block; font-size: 13px; color: var(--dim); margin: 10px 0 4px; }
+#settings input, #settings select, #settings textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--txt);
+  border-radius: 8px; padding: 8px 10px; font-size: 14px; font-family: inherit;
+}
+#settings textarea { min-height: 120px; resize: vertical; }
+#settings .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+#settings .btn-row button { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg3); color: var(--txt); cursor: pointer; }
+#settings .btn-row button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--bg3); border: 1px solid var(--line); color: var(--txt);
+  padding: 8px 18px; border-radius: 20px; font-size: 13px; display: none; z-index: 200;
+}
+@media (max-width: 700px) {
+  #sidebar { position: fixed; left: -240px; top: 0; bottom: 0; z-index: 50; transition: left .25s; width: 240px; }
+  #sidebar.open { left: 0; }
+  #main { position: relative; }
+  .msg { max-width: 92%; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div id="topbar">
+  <button id="menuBtn" onclick="toggleSidebar()">☰</button>
+  <div class="logo">闻人苍月<small>梦女同人写作台</small></div>
+  <div style="flex:1"></div>
+  <button onclick="newSession()">＋ 新对话</button>
+  <button onclick="openSettings()">⚙ 设置</button>
+  <input id="apiKey" type="password" placeholder="DeepSeek API Key (sk-...)" onchange="saveKey()">
+</div>
+
+<!-- 主区 -->
+<div id="main">
+  <div id="sidebar">
+    <h3>💬 会话窗口</h3>
+    <div id="sessionList"></div>
+    <div class="btn-row">
+      <button onclick="newSession()">新建</button>
+      <button onclick="toggleSidebar()">收起</button>
+    </div>
+  </div>
+
+  <div id="chatArea">
+    <div id="chatBox"></div>
+    <div id="inputArea">
+      <div id="draftBar"></div>
+      <div id="modeBar">
+        <button class="mode-btn" data-mode="rp" onclick="setMode('rp')">🎭 梦女互动</button>
+        <button class="mode-btn" data-mode="write" onclick="setMode('write')">✍️ 小说续写</button>
+        <button class="mode-btn" data-mode="polish" onclick="setMode('polish')">✨ 润色</button>
+      </div>
+      <div id="inputRow">
+        <textarea id="prompt" placeholder="输入你的话 / 剧情走向 / 要续写的片段……" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
+        <button id="sendBtn" onclick="send()">发送</button>
+      </div>
+      <div id="uploadBar">
+        <label for="fileInput">📄 上传你的文稿（.txt）</label>
+        <input type="file" id="fileInput" accept=".txt,.md" style="display:none" onchange="handleFile(this)">
+        <span id="contextNote"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置弹层 -->
+<div id="overlay" onclick="if(event.target===this)closeSettings()">
+  <div id="settings">
+    <h2>⚙ 设置</h2>
+    <label>DeepSeek API Key</label>
+    <input id="setKey" type="password" placeholder="sk-...">
+    <label>模型</label>
+    <select id="setModel">
+      <option value="deepseek-chat">deepseek-chat（推荐，写文便宜）</option>
+      <option value="deepseek-reasoner">deepseek-reasoner（深度思考）</option>
+    </select>
+    <label>创造温度（0.7=平衡，1.2=放飞）</label>
+    <input id="setTemp" type="number" min="0" max="2" step="0.1" value="1.0">
+    <label>单次回复最大字数</label>
+    <input id="setMax" type="number" min="200" max="4000" value="1200">
+    <label>梦女/作者人设（你是谁，怎么称呼）</label>
+    <textarea id="setPersona" placeholder="例：我是（你的名字），一个意外来到碧落陵的现代女子……">我是（你的名字），一个意外闯入碧落陵所在世界的现代女子。性格由你设定（例：温柔坚韧 / 俏皮聪慧 / 清冷寡言），有自己的来历与心事。与闻人苍月的相处里，我不卑不亢，能接住他的冷漠与锋芒。</textarea>
+    <div class="btn-row">
+      <button class="primary" onclick="saveSettings()">保存</button>
+      <button onclick="closeSettings()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================================================================
+ * 闻人苍月 · 梦女同人写作台
+ * 纯前端单文件：无需服务器，手机/电脑浏览器打开即用。
+ * 功能：内置仙魔变知识库（关键词自动注入）、多会话、文稿上传续写、
+ *       三种模式（梦女互动/小说续写/润色）、接入 DeepSeek API。
+ * ================================================================== */
+
+/* ---------- 知识库：闻人苍月 & 仙魔变 核心设定 ---------- */
+const LORE = [
+  {
+    keys: ["闻人苍月","苍岳","闻人大将军","苍月"],
+    content: `【闻人苍月人物档案】云秦镇西大将军，总镇碧落边军。嫌"月"字女气自改名"闻人苍岳"，旧识仍称苍月。约三十岁，外貌：眉浓如墨、唇红如锦、铁铸般魁梧身躯，常穿普通青布衣。实力：圣师阶无敌的御剑圣师（赤霞飞剑、近身剑道越近越强、血色长幡克制飞剑、穿山弩飞天术、秃鹫遁术、李苦舍利剑与千魔窟封魔秘术）。性格：枭雄、狠辣、睥睥天下、知人善用、极重情义（唯一挚友鬼军师）；"圣"字自居、漠视普通人但尊重强者（女主需以强者身份登场方能入他眼）。名言："不和这天下为敌，像我这样的人，生在这世上还有什么意义？""阴谋和武力一样重要""我只是想成为九元老之一，只是皇帝……"。毕生执念是进入"重重帷幕之后"（元老会）——这是理解他一切行为的悲剧内核。感情世界在原著中几乎完全留白——没有婚配、没有家人，这是他罕见的软肋与空白。`
+  },
+  {
+    keys: ["碧落陵","镇西大将军","边军","天狼卫","鬼军师","中军大帐"],
+    content: `【碧落陵设定】云秦最西陲，闻人苍月总镇两千余里防线、七万边军。镜天湖畔中军大帐，旗杆挂紫黑"闻人"血旗。他治军赏罚分明、事必躬亲，部下对他绝对忠诚（"士为知己者死"）；天狼卫是他亲自挑选训练的修行者死士（白铜面具、背双长刀）。鬼军师刘玉翔是第一智囊、他唯一真正的朋友（实为西夷罗神部落修行者）。闻人苍月在此与皇帝、九老、青鸾学院、大莽多方博弈。`
+  },
+  {
+    keys: ["南宫未央","宿敌","近身剑意","魔神之链"],
+    content: `【南宫未央与闻人苍月】御剑圣师、面嫩少女（22岁），与闻人苍月是"一生的宿敌/镜像"。五阶段关系：①她深巷救南山暮、杀他部下，他误认她是周首辅的人；②她杀他西夷内应、天狼卫，他从未正眼留意她；③她飞剑斩断他的魔神之链，被他绝杀洞穿几乎丧命（"她不喜欢闻人苍月，非常不喜欢……但他是这世间最强大的御剑圣师之一"）；④终战她以伤换力死磕七曜魔剑数百击，逼他膝盖碎裂；⑤他临终悔恨"低估了她的实力""后悔没有早些杀死这名面嫩圣师"。她最终悟得他的近身剑意——"她一生与他作对，却在一次次失败中偷走了他的剑"。可作女配/对照角色，也可作女主灵感来源。`
+  },
+  {
+    keys: ["魂力","圣师","御剑","飞剑","修行","境界"],
+    content: `【修行体系】魂力即意念力。境界：魂士→魂师→大魂师→国士→大国师→圣师→大圣师。圣师可御飞剑（弱者百步、强者千步杀伐），御剑圣师为顶尖；闻人苍月"圣师阶无敌"。剑道：近身剑道（离身体越近越强，五步之内天下能接其一击者唯有数人）。时间单位：一息=1秒，一停=1分钟，十停=10分钟。`
+  },
+  {
+    keys: ["云秦","皇帝","九老","元老会","一帝九老八公","长孙锦瑟"],
+    content: `【云秦政治】一帝九老八公：皇帝长孙锦瑟 + 九名元老（坐重重帷幕之后）+ 八司（正武、内务、刑、吏、工、律政、礼、户）。九老：闻人家、江家、容家、宇化家、胡家、黄家、陈家、钟家、孔家。闻人苍月为闻人老首辅远亲（族中推上位但早已失控）。他毕生执念是进元老会，被否决后走上反叛之路。`
+  },
+  {
+    keys: ["将军行","琵琶","歌姬","深巷"],
+    content: `【将军行】闻人苍月出征前会让歌姬弹奏《将军行》——充满金铁杀伐气息的琵琶曲，是他出击的号令。金车中"衣着十分华贵的美丽歌姬，捧玉石琵琶"；深巷中也曾有人弹《将军行》（弹奏者身份不明，可作原创女角钩子）。这是与他相关的经典意象。`
+  },
+  {
+    keys: ["大莽","兵马大元帅","七军","李苦","炼狱山","夺月城","千叶关"],
+    content: `【大莽时期】闻人苍月叛入大莽后为大莽七军最高统帅/兵马大元帅。夺月城焚城（魔火片烧死云秦十余万）、千叶关诈袭连破三关八天侵入云秦。与炼狱山掌教联手杀大莽无敌国师李苦（得李苦舍利剑、悟李苦剑意）。此时期他"由盛而衰"：与周首辅世纪之战被重创，"再一百年不可能进阶大圣师"，但仍执念"圣师便一定杀不死大圣师？"。`
+  },
+  {
+    keys: ["结局","斩首","如东陵","死亡","负云秦者","临终"],
+    content: `【闻人苍月的结局（原著）】死于第十五卷「将神」：被林夕一行击败生擒（南宫未央以伤换力死磕七曜魔剑数百击，边凌涵一箭逼落），手脚尽废、全身瘫痪；临死崩溃求活被拒（"我只是想成为九元老之一，只是皇帝……""我可以帮你对付皇帝……我可以做你的军师"→林夕"你不死……我不会安心"）；押回云秦如东陵当众斩首："负云秦者，当如此贼！"。若写梦女文可考虑：HE 架空（改变命运）、BE 虐恋（他临终的悔恨）、或原著向（她成为他身边唯一的温暖）。`
+  },
+  {
+    keys: ["林夕","主角","将神","张院长"],
+    content: `【林夕与张院长】林夕：原著主角，穿越者，将神天赋（时间回溯），与闻人苍月是"宿命般双星/生死宿敌"。若梦女文设定他面前出现，注意不要OOC：林夕机智淡然、重情义。张院长：青鸾学院开山者、穿越者前辈，留下"大黑"长弓与学院理念。`
+  },
+  {
+    keys: ["时间线","前期","中期","后期","碧落陵称雄","大莽"],
+    content: `【可用时间线】①碧落陵称雄期（第4-9卷：他权倾天下、野心膨胀、与皇帝暗战）——适合"强势男主×初遇女主"；②大莽大元帅时期（第11-12卷：焚城、诈袭、养伤）——适合"孤狼男主×理解者女主"；③临终前后（第14-15卷：求饶、自白、悔恨）——适合虐恋/救赎向。`
+  },
+  {
+    keys: ["侍女","药汤","望霞关","养伤"],
+    content: `【侍女与养伤】第十二卷：闻人苍月在望霞关将塔泡祛伤汤十余天疗养（一生征战、沉疴隐伤），四名侍女"沉默添柴""见多了血腥场面"、为他擦洗身体换衣——身边唯一的女性存在，可作梦女文的切入视角或对照。`
+  },
+  {
+    keys: ["女潜隐","细致洞察力","聪明"],
+    content: `【他对聪明女子的态度】第十三卷：他处置差点毁掉夺月城之战的云秦女潜隐（青鸾女学生）——赞赏她"细致洞察力便是我昔日碧落陵全军都无人能及"、容忍她"这真是个愚蠢的问题"的顶撞、敬重致谢，但兵不厌诈照杀不误（灭口）。可见他对真正有才能的女性既欣赏又绝不因私废公。`
+  },
+  {
+    keys: ["长公主","长孙慕月","如东陵"],
+    content: `【长公主长孙慕月】皇帝亲妹、大国师；如东陵遇刺"就是接下来一切事情的开端"（被朝臣疑为闻人苍月手段）；暗中助青鸾学院；养大南宫未央、举荐林夕入学。与闻人苍月无直接互动，但因果暗线可深挖。`
+  },
+  {
+    keys: ["青鸾学院","六系","张院长","学院"],
+    content: `【青鸾学院】历史最悠久、张院长创办，位于登天山脉；六系：止戈、文治、御药、天工、灵祭、内相；学生毕业即相当于镇督级别。理念："对生命起码的尊重和怜悯""生死之间有大恐怖"。闻人苍月本身是青鸾学院出身（校友）。`
+  },
+  {
+    keys: ["西夷","鬼军师","罗神幡","秋蝗","流寇"],
+    content: `【西夷】六十年前被张院长打垮、沦为沙漠流寇（"秋收/秋蝗"）；被闻人苍月"养狗"般畜养并秘密合作（官军与流寇勾结）；鬼军师实为西夷罗神部落修行者（罗神幡克制飞剑）。这是他政治上的致命把柄之一。`
+  },
+  {
+    keys: ["唐藏","般若寺","大莽","湛台浅唐","凤轩"],
+    content: `【邻国】唐藏：凤轩皇帝、般若寺（真毗卢曾以一人之力迫退闻人苍月）。大莽：老皇帝湛台莽传位义子湛台浅唐（与林夕结盟）；炼狱山、千魔窟。闻人苍月最终为大莽兵马大元帅。`
+  },
+];
+
+/* ---------- 状态 ---------- */
+let sessions = {};      // id -> {title, mode, messages:[{role,content}], draft:""}
+let currentId = null;
+let currentMode = 'rp';
+let apiKey = localStorage.getItem('hm_apiKey') || '';
+let model = localStorage.getItem('hm_model') || 'deepseek-chat';
+let temp = parseFloat(localStorage.getItem('hm_temp') || '1.0');
+let maxTokens = parseInt(localStorage.getItem('hm_max') || '1200');
+let persona = localStorage.getItem('hm_persona') || '我是（你的名字），一个意外闯入碧落陵所在世界的现代女子。性格由你设定，有自己的来历与心事。与闻人苍月的相处里，我不卑不亢，能接住他的冷漠与锋芒。';
+let draftContent = '';  // 当前会话的底稿（上传的文稿）
+
+const SYSTEM_SEED = `你是一位擅长撰写「闻人苍月」梦女同人小说的写手，同时也是一位出色的角色扮演者。
+故事背景：云秦帝国，碧落陵。闻人苍月——镇西大将军，圣师阶无敌的御剑圣师，枭雄，睥睨天下，但感情世界一片空白。
+写作要求：
+1. 文笔优美，古风但不晦涩，注重氛围与心理描写。
+2. 严格保持闻人苍月人设：冷漠、强势、睥睨、但会尊重真正的强者；说话简短有力，不话痨。
+3. 描写要有电影感：景物、动作、神态、氛围。避免干巴巴的对话流水账。
+4. 感情线要自然推进，不突兀；闻人苍月的"动心"应该是细微的、克制的、被他自己压抑的。
+5. 你是写手/扮演者，不要跳出角色评论写作过程（除非用户要求）。
+【知识库注入规则】下方【设定】部分的内容会在相关话题出现时注入，写作时严格遵守，不要与原著设定冲突。`;
+
+/* ---------- 初始化 ---------- */
+function init() {
+  document.getElementById('apiKey').value = apiKey;
+  // 载入会话
+  try { sessions = JSON.parse(localStorage.getItem('hm_sessions') || '{}'); } catch(e){ sessions = {}; }
+  if (!Object.keys(sessions).length) newSession();
+  else { currentId = Object.keys(sessions)[0]; renderSessionList(); renderChat(); }
+  renderDraftBar();
+  toast('欢迎回来。愿你与闻人大将军有一段好故事。');
+}
+
+function saveAll() {
+  localStorage.setItem('hm_sessions', JSON.stringify(sessions));
+  localStorage.setItem('hm_apiKey', apiKey);
+  localStorage.setItem('hm_model', model);
+  localStorage.setItem('hm_temp', temp);
+  localStorage.setItem('hm_max', maxTokens);
+  localStorage.setItem('hm_persona', persona);
+}
+
+function newSession() {
+  const id = 's' + Date.now();
+  sessions[id] = { title: '新对话', mode: 'rp', messages: [], draft: '' };
+  currentId = id; draftContent = '';
+  saveAll(); renderSessionList(); renderChat(); renderDraftBar();
+  if (window.innerWidth <= 700) toggleSidebar(true);
+}
+
+function delSession(id) {
+  if (!confirm('删除这个会话？')) return;
+  delete sessions[id];
+  if (currentId === id) { currentId = Object.keys(sessions)[0] || null; if (currentId) newSession(); }
+  saveAll(); renderSessionList(); renderChat();
+}
+
+function switchSession(id) {
+  currentId = id; draftContent = sessions[id].draft || '';
+  renderSessionList(); renderChat(); renderDraftBar();
+  if (window.innerWidth <= 700) toggleSidebar(true);
+}
+
+function toggleSidebar(force) {
+  const s = document.getElementById('sidebar');
+  const open = force !== undefined ? force : !s.classList.contains('open');
+  s.classList.toggle('open', open);
+}
+
+/* ---------- 渲染 ---------- */
+function renderSessionList() {
+  const box = document.getElementById('sessionList');
+  box.innerHTML = '';
+  Object.keys(sessions).forEach(id => {
+    const s = sessions[id];
+    const div = document.createElement('div');
+    div.className = 'sess' + (id === currentId ? ' active' : '');
+    div.innerHTML = `<span onclick="switchSession('${id}')">${escapeHtml(s.title)}</span><span class="del" onclick="delSession('${id}')">×</span>`;
+    box.appendChild(div);
+  });
+}
+
+function renderChat() {
+  const box = document.getElementById('chatBox');
+  box.innerHTML = '';
+  if (!currentId) return;
+  const msgs = sessions[currentId].messages || [];
+  if (!msgs.length) {
+    box.innerHTML = `<div class="msg system">这里是「闻人苍月」梦女同人写作台。<br>🎭 梦女互动：你就是女主，直接与他对话<br>✍️ 小说续写：上传你的文稿，让我接着写<br>✨ 润色：让我润色你的片段<br><br>例：「我在碧落陵的城门口，远远看见那面紫黑的闻人血旗」</div>`;
+  }
+  msgs.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'msg ' + m.role;
+    if (m.role === 'user') div.innerHTML = `<div class="name">你</div>${escapeHtml(m.content)}`;
+    else if (m.role === 'assistant') div.innerHTML = `<div class="name">${escapeHtml(assistantName())}</div>${escapeHtml(m.content)}`;
+    else div.textContent = m.content;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function assistantName() {
+  return sessions[currentId] && sessions[currentId].mode === 'write' ? '✍️ 写手' : '闻人苍月';
+}
+
+function renderDraftBar() {
+  const bar = document.getElementById('draftBar');
+  const note = document.getElementById('contextNote');
+  if (draftContent) {
+    const len = draftContent.length;
+    bar.innerHTML = `<span class="file-chip">📄 已上传底稿（${len}字）<button onclick="clearDraft()">×</button></span>`;
+    note.textContent = `续写时会参考底稿末尾内容`;
+  } else {
+    bar.innerHTML = '';
+    note.textContent = '';
+  }
+}
+
+function clearDraft() {
+  draftContent = '';
+  if (currentId) { sessions[currentId].draft = ''; saveAll(); }
+  renderDraftBar();
+  toast('已清除底稿');
+}
+
+/* ---------- 模式 ---------- */
+function setMode(m) {
+  currentMode = m;
+  if (currentId) { sessions[currentId].mode = m; saveAll(); }
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderChat();
+  toast(modeHint(m));
+}
+function modeHint(m) {
+  if (m === 'rp') return '🎭 梦女互动：你就是女主，和闻人苍月对话';
+  if (m === 'write') return '✍️ 小说续写：AI 接着你上传的文稿写';
+  return '✨ 润色：AI 润色你的片段';
+}
+
+/* ---------- 文件上传 ---------- */
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let text = e.target.result;
+    // 去除可能的BOM
+    text = text.replace(/^\uFEFF/, '');
+    draftContent = text;
+    if (currentId) { sessions[currentId].draft = text; saveAll(); }
+    renderDraftBar();
+    toast(`已上传「${file.name}」(${text.length}字)`);
+  };
+  reader.readAsText(file, 'utf-8');
+  input.value = '';
+}
+
+/* ---------- 发送 ---------- */
+async function send() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) return;
+  if (!apiKey) {
+    toast('请先在右上角/设置里填 DeepSeek API Key');
+    openSettings();
+    return;
+  }
+  const mode = currentMode;
+  const box = document.getElementById('chatBox');
+  const sendBtn = document.getElementById('sendBtn');
+  const ta = document.getElementById('prompt');
+
+  // 追加用户消息
+  pushMsg('user', prompt);
+  ta.value = '';
+  renderChat();
+
+  // 组装消息
+  const messages = buildMessages(mode, prompt);
+  const system = buildSystem(mode);
+
+  // 添加"思考中"占位
+  const thinking = document.createElement('div');
+  thinking.className = 'msg assistant';
+  thinking.innerHTML = `<div class="name">${escapeHtml(assistantName())}</div><span class="status">思索中…</span>`;
+  box.appendChild(thinking);
+  box.scrollTop = box.scrollHeight;
+  sendBtn.disabled = true;
+
+  try {
+    const resp = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: 'system', content: system }, ...messages],
+        temperature: temp,
+        max_tokens: maxTokens * 2,
+        stream: false
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error('API错误 ' + resp.status + ': ' + err.slice(0, 200));
+    }
+    const data = await resp.json();
+    const content = data.choices[0].message.content;
+    thinking.remove();
+    pushMsg('assistant', content);
+    renderChat();
+  } catch (e) {
+    thinking.remove();
+    toast('出错：' + e.message);
+    renderChat();
+  } finally {
+    sendBtn.disabled = false;
+    ta.focus();
+  }
+}
+
+function pushMsg(role, content) {
+  if (!currentId) newSession();
+  if (!sessions[currentId].messages) sessions[currentId].messages = [];
+  sessions[currentId].messages.push({ role, content });
+  if (sessions[currentId].title === '新对话') {
+    const t = content.slice(0, 12);
+    sessions[currentId].title = t + '…';
+  }
+  saveAll(); renderSessionList();
+}
+
+/* ---------- 消息与系统提示组装 ---------- */
+function buildSystem(mode) {
+  let sys = SYSTEM_SEED;
+  const hits = matchLore();
+  if (hits.length) {
+    sys += '\n\n【当前注入的设定】\n' + hits.join('\n---\n');
+  }
+  // 追加底稿（小说续写模式）
+  if (mode === 'write' && draftContent) {
+    const tail = draftContent.slice(-2500);
+    sys += `\n\n【用户已上传的文稿·末尾部分】\n${tail}\n\n【任务】请严格接续这段文稿继续写下去，保持文风、视角与人设一致。`;
+  }
+  // 角色设定
+  sys += `\n\n【梦女/女主设定】${persona}`;
+  if (mode === 'rp') {
+    sys += `\n\n【当前模式：梦女互动】你扮演闻人苍月本人，用他的口吻与用户（梦女女主，名字见设定）对话。保持他的人设：冷漠、强势、睥睨、惜字如金但字字千钧；对女主从审视到微微在意，克制地流露感情。`;
+  } else if (mode === 'write') {
+    sys += `\n\n【当前模式：小说续写】你是这部「闻人苍月 × 梦女女主」同人小说的写手，以第三人称或女主视角继续书写，注重氛围与心理。`;
+  } else {
+    sys += `\n\n【当前模式：润色】请润色用户提供的文本：保持原意与情节，提升文笔与表现力，不要大幅改写剧情。`;
+  }
+  return sys;
+}
+
+function buildMessages(mode, prompt) {
+  const msgs = sessions[currentId].messages || [];
+  // 最近的消息（控制上下文长度，最多保留约40条）
+  const recent = msgs.slice(-40);
+  return recent.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
+}
+
+function matchLore() {
+  // 用最近几条消息匹配知识库关键词
+  const msgs = sessions[currentId]?.messages || [];
+  const text = msgs.slice(-6).map(m => m.content).join(' ');
+  const hits = [];
+  for (const item of LORE) {
+    if (item.keys.some(k => text.includes(k))) hits.push(item.content);
+  }
+  return hits;
+}
+
+/* ---------- 设置 ---------- */
+function openSettings() {
+  document.getElementById('setKey').value = apiKey;
+  document.getElementById('setModel').value = model;
+  document.getElementById('setTemp').value = temp;
+  document.getElementById('setMax').value = maxTokens;
+  document.getElementById('setPersona').value = persona;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSettings() { document.getElementById('overlay').classList.remove('show'); }
+function saveSettings() {
+  apiKey = document.getElementById('setKey').value.trim();
+  model = document.getElementById('setModel').value;
+  temp = parseFloat(document.getElementById('setTemp').value) || 1.0;
+  maxTokens = parseInt(document.getElementById('setMax').value) || 1200;
+  persona = document.getElementById('setPersona').value.trim();
+  document.getElementById('apiKey').value = apiKey;
+  saveAll();
+  closeSettings();
+  toast('设置已保存');
+}
+function saveKey() {
+  apiKey = document.getElementById('apiKey').value.trim();
+  saveAll();
+}
+
+/* ---------- 工具 ---------- */
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+init();
+</script>
+
+<!-- 资料库面板 -->
+<div id="libBtn" onclick="toggleLib()" style="position:fixed;bottom:90px;right:14px;z-index:60;background:#1a2a45;border:1px solid #4d8fd4;color:#4d8fd4;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.4);">📖<br>资料</div>
+<div id="libPanel" style="position:fixed;top:0;right:-420px;width:400px;max-width:92vw;height:100%;background:#0d1524;border-left:1px solid #2a3d5f;z-index:70;transition:right .3s;overflow-y:auto;padding:14px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <b style="color:#4d8fd4;">📚 仙魔变资料库</b>
+    <button onclick="toggleLib()" style="background:#1a2a45;border:1px solid #2a3d5f;color:#dbe6f5;border-radius:8px;padding:4px 10px;cursor:pointer;">✕ 关闭</button>
+  </div>
+  <div style="color:#8fa5c5;font-size:12px;margin-bottom:8px;">完整资料（仅查看，不注入AI对话）。写文时AI自动使用内嵌的核心设定。</div>
+<details class="libsec" style="margin:6px 0;border:1px solid #2a3d5f;border-radius:8px;padding:6px 10px;background:#131e33;"><summary style="cursor:pointer;font-weight:bold;color:#4d8fd4;">📖 01-人物志</summary><div style="white-space:pre-wrap;margin-top:6px;color:#dbe6f5;font-size:13px;line-height:1.7;"><b>《仙魔变》人物志</b>
+
+&gt; 依据：主文档《仙魔变-闻人苍月-BG同人研究.md》及第九、十五、十六卷精读笔记，并补第一、三、四、七、八、十一至十四卷笔记。行号以完整版 60,284 行为准。
+
+<b>一、主角团</b>
+
+**林夕**（主角）：现代大学生穿越至云秦鹿林镇富商之子，经长公主举荐入青鸾学院，止戈系天选（资质二），历任提捕、燕来镇督、灵祭祭司、大德祥幕后东家；淡然怕事、爱憎分明、极重情义。事迹：破银钩坊案（五卷）、斩阉人沐沉允（七卷）、收黑狐猫吉祥（八卷）、射杀公孙泉（九卷）、坠星陵射杀胥秋白（十一卷）、中州城斩狄愁飞（十四卷）、修成魔变生擒斩首闻人苍月、自毁大黑诛杀炼狱山掌教（十五卷）、亲手杀张平（十六卷）。终局：放弃将神、融合虚空能量成超越大圣师的存在，与高亚楠团聚（有孕）。与闻人苍月：生死宿敌、宿命双星，其求饶被拒。
+
+**高亚楠**：御药系学生，云秦首辅周若海之女（随母姓），冰雪巨人后裔血脉，资质五。以"御雪"秘术独战大莽军人（四卷）、抗婚拒太子、以冰雪巨剑冰封七曜魔剑参与围杀闻人苍月（十五卷）。终局：假死隐匿后与林夕团聚有孕。
+
+**边凌涵**：青鸾学生，"天生的风行者"，为免林夕被嘲笑而藏拙。贯眼射杀刘乘恩（四卷）；对闻人苍月射出全力一箭、右臂尽裂（十五卷）。终局：假死归来。与闻人苍月：闻其名即心冷（旧恨）。
+
+**姜笑依**：青鸾同学，长枪/黑刀，正直热血。与林夕联手斩沐沉允（七卷）、与王思敏大婚（十四卷）、参与围杀闻人苍月（十五卷）。终局：假死归来，得女。
+
+**李开云**：止戈系"土包"（秦疯子调教，摩柯剑三态），对冷秋语一见钟情。十四卷遭大莽军围杀（军部内奸出卖），临死击晕挚友方竺、反手射箭"杀死"他以保全其命，独自赴死。林夕最在意的挚友，其死引发"大行"复仇。
+
+**唐可**：瘦高沉默的边蛮少年，碧落边军出身，"两次独活"被视瘟神，背亡兄刀弓入学，获秦疯子欣赏；林夕好友。终局：娶洪绣女、隐退田园，儿女双全。
+
+**蒙白**：内相系胖子同窗（资质五/紫）、军情官，胆小怕事、大智若愚（"最大的勇气不是杀人"）。野陵十狼行动喊切口（九卷）；面对被擒的闻人苍月哭喊逃跑、拒绝手刃之（十四卷）；探得张平"黑虫"弱点（十六卷）。终局：与艾绮兰同做乡村教师。
+
+**张平**（全书最终大敌）：天工系同窗（资质四/红光），暗恋秦惜月；青鸾潜隐→炼狱山掌教→魔王。自卑→怨憎→冷酷残暴（"我恨你，因为不公平"）。修成魔变夺掌教位（十五卷）、毁灭雷霆学院、着"不灭"铠甲入主真龙山囚长公主（十六卷）。终局：被林夕破"魔王之躯"，心脏自行裂开枯萎而死（"愤怒→肝脏"死穴）。与林夕：同窗→嫉妒→死敌。
+
+<b>二、青鸾学院师长</b>
+
+**张院长**：青鸾开山者、将神，穿越者前辈，一夜斩西夷三十将、坠星陵十三日死守；十六年前失踪（被皇帝真龙卫设伏暗算、进入青鸾宫虚空通道）。终局：在大明时空化名"张居正"。与林夕：同世界的"老乡"。
+
+**夏副院长（夏知秋）**：独臂老人，坠星湖与张院长并肩的十七名学生之一、学院实际掌舵者（"生死之间有大恐怖"）。裁定林夕为天选、判定其将神潜质并布局掩饰；拒绝皇帝"交出修行方法"旨意。终局：十五卷开篇临终揭示大圣师弱点后辞世。
+
+**佟韦**：黑袍独目箭师、圣师、天下最强箭手之一。测出边凌涵风行者天赋；传林夕"小黑"线索（九卷）；一箭毁李苦之剑（十三卷）。
+
+**徐生沫**：学院讲师、改革派（疑即当年"徐讲师"），毒舌刻薄、面冷心热。正将星特训林夕；学院内乱中反戈护院（十一卷）。终局：假死归来。
+
+**萧明轩**：戴黄铜眼镜的肥胖谋士、青鸾总军师（居哀牢后山），"首辅之才"。发现林夕"两碗水"特质列为天枢级机密；研判南宫未央身世。
+
+**安可依**：御药系最年轻女教授，书呆气、药理无双（蓝杏、流沙解药）。九卷以"蓝杏"毒倒程玉大军、硬阻闻人苍月刺太子；赠林夕绝毒"流沙"。
+
+**罗侯渊**：学院守护，传林夕"明王破狱"功法，选艾绮兰为守夜者。
+
+**木青**：止戈系舍监，实为灵祭祭司（啮火兽）、国士级，一指点昏雷霆讲师高离人（四卷）。
+
+**秦疯子**：止戈系教授，"以杀止杀方能止戈"；力主收林夕（"做潜伏密探的最佳人选"）。
+
+**谷心音**：内相系传奇学长、林夕师叔，云秦最厉害御剑圣师之一、试炼山谷记录保持者，身兼般若寺修行之法。为夺"大黑"入唐藏、被囚水牢多年；九卷刺萧湘归家；已不能出手但智识仍在；十六卷探冰雪神原、主持学院重建。与闻人苍月：必杀名单之首；南宫未央即他22年前捡到的婴儿。
+
+<b>三、闻人苍月势力</b>
+
+**闻人苍月**（镇西大将军、全书前半最大宿敌）：云秦镇西大将军、总镇碧落边军，闻人家远亲（老首辅推上位），嫌"月"女气自改"苍岳"。枭雄（"一将功成万骨枯"）、知人善用、孤傲（唯一挚友鬼军师），野心起点是进元老会（"他想要将这天狠狠的捅一个窟窿"）。实力：圣师阶无敌的御剑圣师——赤霞飞剑、近身剑道、血色长幡、穿山弩飞天术、秃鹫遁术、七曜魔剑、李苦舍利剑。事迹：庶人城除南山暮（四卷）；碧落陵会战穿山弩飞天刺太子（九卷）；"魔神之链"绝杀局（姜钰儿、太子死，十卷开头）；叛入大莽与炼狱山联手杀李苦、封大莽兵马大元帅；夺月城焚城烧死十余万云秦军（十一卷）；与周首辅世纪之战被重创（十三卷）；诛心局掳花寂月被反杀（十四卷）；受惠灵丹、千霞山终极对决被南宫未央死磕数百击、自毁左臂轰李苦剑意被将神预知破去，生擒押回如东陵当众斩首（"负云秦者，当如此贼！"，临终自白"我只是想成为九元老之一，只是皇帝……"，尸身验出惠灵丹药力反噬皇帝）。与林夕：生死宿敌（"林夕此子，是极大的威胁"）；与南宫未央：一生镜像——"她这一生都好像在专门和他作对"，临终唯一后悔"低估了她的实力"。
+
+**鬼军师刘玉翔**（又作刘玉祥）：第一智囊、唯一挚友，西夷罗神部落修行者（罗神幡），能看透人心。庶人城事件被南宫未央重创、被周首辅生擒（四卷）；被徐布衣背出碧落陵（九卷）。
+
+**公孙泉**：用毒大师（"跗骨""流沙"），九卷毒攻松柏居，被林夕射杀于侯雀城。
+
+**程玉**：碧落副帅、圣师，闻人苍月从尸堆救出的心腹；九卷断后被南宫陌所杀（"命是他救的，再把命还给他"）。
+
+**道若素**：碧落陵第二强者、近身剑道（学自闻人苍月）的门客圣师；九卷被南宫陌击杀。
+
+**胥秋白**：碧落第一箭师、大国师巅峰，"闻人苍月的刺"。子母箭射穿太子（长孙无疆死，十卷开头）；坠星陵决斗被林夕以他自己的深红巨弓射杀（十一卷）；其死令闻人苍月罕见失态。
+
+**甄快**：闻人苍月密探头目；十六卷化名宋成隐居，向林夕报"城西荣工坊"线索。
+
+**天狼卫**：闻人苍月亲自挑选训练的修行者死士（白铜面具、背双长刀），二十年建成、媲美黑旗军。九卷死近半，令闻人苍月"坚硬冷酷的心也不由得心痛"。
+
+<b>四、云秦皇朝</b>
+
+**皇帝长孙锦瑟**：云秦皇帝，一帝九老八公之首，暴戾疯狂、野心整个天下。借刺杀长公主造势；逼青鸾学院交修行之法失败；丧子后逼退周首辅、执意南伐；暗算张院长（融魂"麒麟"旧案）；赐唯一惠灵丹给闻人苍月（成反噬铁证）。终局：被林夕逼宫，死于中州百姓暴乱。
+
+**长公主长孙慕月**：皇帝亲妹、大国师；如东陵遇刺被疑为闻人苍月手段（"那场刺杀，就是接下来一切事情的开端"）。暗中助青鸾学院；养大南宫未央、举荐林夕入学。终局：被张平囚禁，张平死后继任云秦女皇。
+
+**太子长孙无疆（陈暮）**：云秦太子，以"陈暮"身份在青鸾学院学习（止戈三年、剑社），真龙血脉。九卷亲征碧落陵被闻人苍月一剑重创；与林夕结为挚友；十卷开头被胥秋白子母箭射穿而亡；临死前对林夕主动融魂（金色雷海）。与闻人苍月：必杀名单之首。
+
+**九老（闻人老首辅等）**：闻人家、江家、容家、宇化家、胡家、黄家、陈家、钟家、孔家（冷家后取代黄家），坐"重重帷幕之后"，共同"敌人"是青鸾学院。否决闻人苍月替补黄家入元老会——其反叛最初导火索；闻人老首辅推这个远亲上位却最终控制不住。
+
+**周首辅周若海**：云秦首辅、绝对效忠皇帝，冰雪巨人后裔，高亚楠之父。生擒鬼军师；十三卷与闻人苍月世纪之战（自身修为尽废）；预言南伐必败被逼退。终局：被林夕送往唐藏安养。
+
+**文玄枢**：权臣，与许箴言设"御都科"、血洗江家；其子文轩宇探得天魔宫秘密。十四卷秋祭谋反被真龙山金雷天罚镇压身死。
+
+**许箴言**：许家三公子、青鸾金勺，因秦惜月敌视林夕，阴鸷善谋、嫉妒，逐步黑化。九卷遭闻人苍月部下刺杀蜕变为"独狼"；十二卷逼出张院长失踪与皇帝有关的秘密；十六卷入主中州城、通缉林夕。终局：逃亡途中望见唐可幸福生活而悟，倒地而亡。
+
+**倪鹤年**：皇廷大供奉、暗祭司死敌。十四卷末破境大圣师；十五卷为"最后确认将神"临阵倒戈要杀林夕，被重创后死于艾绮兰、秦惜月的音震之法。
+
+**张秋玄**：皇廷大供奉、天子之师。识破南山暮"逆反"疑点；赴碧落陵夺闻人苍月军械被擒，供出"我们将张院长引向了那里"后被许箴言灭口。
+
+**狄愁飞**：仙一学院最精英学生、龙蛇军大都督、边军将星，视林夕为竞争对手怀必杀之心。屠镇古草场；被凰火笑重创（八卷）；升平波大将军掌中州卫、赐婚冷秋语（十四卷）。终局：被林夕当街复仇，冷秋语亲手斩首。
+
+**顾云静**：神威大将军、黑旗军统帅，唯一声望与闻人苍月并肩者，实为两年前已悄然进阶大圣师。亲赐林夕无畏级勋章；十五卷以血枪击杀炼狱山大长老后力竭而亡，遗言把黑旗军留给林夕。
+
+**胡辟易**：云秦镇南大将军、南伐讨逆大元帅，天才统帅但活在闻人苍月阴影下。夺月城大败、千叶关失守成罪人；坠星湖歼灭战以罪人之身大胜后功成身退；穿草鞋卖鞋隐忍数年后与父亲胡沉浮（与敌同归于尽）和解、重返千霞山。
+
+<b>五、南宫未央与相关</b>
+
+**南宫未央**：云秦最年轻的御剑圣师（面嫩少女、22岁，天生道心者、从不说假话），长公主养大、谷心音22年前在大荒泽捡到的婴儿；十五卷身世揭晓——绿野城妖族"异类"（父母带她出走、死于大荒泽，父遗剑"灵犀"）。事迹：深巷救南山暮、斩二天狼卫重创鬼军师（四卷，与闻人苍月隔空结仇）；飞剑斩断"魔神之链"（此生最惨烈一败，十卷开头）；成云秦东境流寇之王（十一卷）；以伤换力死磕七曜魔剑数百击、断闻人苍月右手腕（十五卷）；悟得近身剑意（"她一生与他作对，却在一次次失败中偷走了他的剑"）、公认当世最强圣师（十六卷）。终局：为重建的青鸾学院挑选学生，无明确感情归宿。与闻人苍月：宿命死敌、一生镜像，他临终唯一后悔"低估了她的实力"。
+
+**南宫陌**：唐藏人、被逐出青鸾学院的黑袍银星教授、御剑圣师。二卷御药系大火纵火者（唐藏潜隐）；九卷击杀道若素、追杀闻人苍月两天两夜逼出其秃鹫秘密；任务完成后向西回唐藏。
+
+**南山暮**：碧落边军戍边左将军。四卷庶人城事件被鬼军师以"起兵逆反"罪名处决，被南宫未央救走；假戏真做带三千余兵退往般若走廊；九卷配合击溃封林军。与闻人苍月："知道得太多，不算自己人"。
+
+**花寂月**：青鸾止戈系学生，"曾经作为一名极其成功、令闻人苍月都十分惊叹的潜隐"。十四卷被闻人苍月掳为人质逼林夕毁大黑，林夕燃命救回。与闻人苍月：纯"人质—主谋"关系。
+
+**艾绮兰**：灵祭系学生、守夜者，继承暗祭司银链魂兵。十五卷与秦惜月以音震之法杀死倪鹤年。终局：与蒙白同做乡村教师。
+
+**秦惜月**：秦家千金（与家族决裂）、女将领，坚强自主。拒许家/周家提亲；张平暗恋她；音震杀倪鹤年（十五卷）；与林夕"不求一生，只求一时"。终局：洒脱放手独身。
+
+**冷秋语**：冷家之女（父冷镇南内务司司首），李开云恋人。十四卷被赐婚狄愁飞，大婚日登摘星楼跳楼殉情（被救）；后亲手斩下狄愁飞头颅，随林夕乘金色凤凰出城。终局：假死归来。
+
+**姜钰儿**：林夕的青梅竹马（青鸾学生）。十卷开头白玉楼圣师一击刺杀林夕，她扑身挡刀而死——林夕旧痛与复仇之因。
+
+**王思敏**：银钩坊被救绣女，被阉人派死士刺杀被林夕救下（六卷）；姜笑依之妻，十四卷与他在燕来镇大婚，终团圆得女。
+
+**陈妃蓉**：大德祥大掌柜（林夕在商道的接应者）。七卷被收为门客；十四卷助大德祥以民心渡劫；十六卷自承"我是林夕的人"，以断粮瓦解张平的信徒大军。
+
+**池小夜**：绿野城妖族少女、穴蛮"夜神"（御植之术）。八卷与林夕从死敌到"值得信任的敌人"；十一卷与林夕达成通商；十五卷引林夕入绿野城寻妖族外援。
+
+**吉祥**：三尾黑狐猫（史上首例被收服的"厄运之兽"）、寒冰吐息，对林夕绝对依赖。冻杀裂金黑鹫（助林夕成灵祭祭司）、终战冰封七曜魔剑。终局：回冰雪神原蜕变为白色"仙灵"。
+
+<b>六、大莽/唐藏/炼狱山</b>
+
+**湛台莽**：大莽开国皇帝（以普通边军起兵的老者），工于心计、伪装穷老人在贫民区授课培养接班人。传位义子湛台浅唐失败；弥留叹"这战，长孙锦瑟败了，青鸾学院败了，我也败了"。
+
+**湛台浅唐**：大莽老皇帝的学生/义子、流亡之君，睿智仁厚、精通军略（评闻人苍月"这个时代最杰出的统帅"）。与林夕结盟共抗闻人苍月；十五卷率三万残军赌命"护驾"、拒绝炼狱山掌教的皇位许诺、决战突破圣阶、参与围杀闻人苍月。终局：成为大莽新皇。
+
+**李苦**：大莽无敌国师（千魔窟弃徒、观虾悟道）。独闯御林军击杀公瑾战王；十卷被闻人苍月+炼狱山掌教联手围杀，留剑形骨舍利。闻人苍月拒大莽招揽时言"李苦，也是我在这个世上需要击败的对手"；后得其舍利剑、悟李苦剑意。
+
+**炼狱山掌教（申屠氏）**：大莽真正幕后主宰、世间无敌的至高存在（紫黑火焰、圣阶金属傀儡）。与闻人苍月联手杀李苦；保下闻人苍月当"盾牌"（"我留着他，自然有用"）；千叶关被林夕自毁大黑诛杀，临死悲问"为什么"。与闻人苍月：利用+必弃的君臣博弈。
+
+**申屠氏**（补充）：掌教一脉专属姓氏——申屠念（七军统帅、洗魂珠持有者）、申屠大师（八卷被林夕毒杀的炼狱山圣师）。
+
+**白玉楼**：知鹿郡郡守、昔日照拂过林夕，实为大莽千魔窟潜隐。九卷向闻人苍月提供掩护、安排接应；十卷开头以圣师一击刺杀林夕→姜钰儿挡刀而死；此后下落笔记未明载。
+
+**凰火笑**：黑龙军大统领（从四品），实为大莽千魔窟/炼狱山卧底，六刀锁链秘术、大国师。八卷大磁泽被林夕射穿胸口又被救活（"回家吧，永远不要再回来"）；十六卷假意投张平、实际救走高亚楠等人。
+
+**萧湘**：唐藏皇叔（神象军），与闻人苍月有军械交易协议；曾亲手杀死欲随谷心音私奔的女儿。九卷被谷心音、云海、凤轩皇帝联手刺死于流沙城。
+
+**凤轩皇帝**：唐藏幼主、权术天才（受病重皇太后熏陶）。拒绝乘乱进兵之策；谋划用谷心音换南宫陌；九卷与谷心音联手刺萧湘。
+
+**皇太后**：唐藏病重老妇、权术大师（般若寺渊源），凤轩之师（"最关键的不是武力，而始终是心"）。设计用谷心音换南宫陌、借般若寺大师之手杀谷心音；四卷末登禅般若寺、殡天。
+
+**真毗卢**：般若寺入世僧，以一人之力迫退闻人苍月的强者（九卷：闻人苍月双掌夹其禅杖、掌心血肉焦黑）；与南宫未央并肩赴约杀天狼卫；后随凤轩皇帝入世辅佐。
+
+**云海**：般若寺小和尚。九卷以般若寺神通反杀老巫师（刺萧湘一战）；谷心音许诺他"有空到青鸾学院来看看"。
+
+---
+
+<b>附注</b>
+
+1. **人物区分**：八卷另有"南宫苍月"（与李苦并列为靠自己成巅峰强者的存在）系南宫氏，与闻人苍月是不同人物。
+2. **闻人苍月死亡卷次**：最终对决与斩首见于十五卷「将神」第713–719章（全书约49300–49900行）；第十六卷笔记及主文档更正栏误记为"第十四卷"，行号互证以十五卷为准。
+3. **同人空白**：闻人苍月未婚配、无家人信息，感情世界几乎完全留白（唯一女性在场是奏《将军行》的歌姬与药汤侍女），BG 同人可自由发挥。
+</div></details>
+<details class="libsec" style="margin:6px 0;border:1px solid #2a3d5f;border-radius:8px;padding:6px 10px;background:#131e33;"><summary style="cursor:pointer;font-weight:bold;color:#4d8fd4;">📖 02-事件编年</summary><div style="white-space:pre-wrap;margin-top:6px;color:#dbe6f5;font-size:13px;line-height:1.7;"><b>《仙魔变》全书事件编年（大事记）</b>
+
+&gt; 依据：`仙魔变-闻人苍月-BG同人研究.md`（16卷剧情概要）及第九卷、第十五卷、第十六卷精读笔记整理。行号为各笔记所标原书行号；其中卷一至卷六、卷九、卷十为主文档分卷行号体系（1–37972行），卷七、卷八、卷十一至卷十六为完整版行号体系（14143–60284行），两套各自连续。除张院长前史个别细节（笔记未详述处已注明）外，信息均基于笔记，不另作编造。
+
+---
+
+<b>一、前史：张院长时代（林夕穿越前约六十余年）</b>
+
+1. **张院长入中州**：张院长是穿越者（青鸾宫遗书简体字留言自述"我来自重庆，之前是个高中物理老师"），入此方世界后成为青鸾学院创始者，亦是将神，曾"纵横天下"，留下"魂力即意念力""生死之间有大恐怖"等学院理念（卷一1–3127行碑文；卷十五、卷十六）。
+2. **斩西夷三十将**：约六十年前张院长打垮西夷十五部——西夷首领一夜被斩尽，余部逃入般若走廊后荒漠沦为沙漠流寇（"秋收/秋蝗"），帝国西患由此始（世界观设定；卷九笔记"西夷现状"）。
+3. **坠星陵死守**：夏副院长即"当年坠星湖与张院长并肩的十七名学生之一"（卷一）。注：笔记仅存"坠星湖并肩"这一线索，"死守"细节未详述。
+4. **创立青鸾学院制度**：三大学院中青鸾学院历史最悠久、出过张院长；遗留"大黑"长弓、妖兽"明哥"、将神天赋（青色轮盘时间回溯）等遗泽（世界观；卷十二明哥传法）。
+5. **失踪**：张院长为寻找青鸾宫而下落不明（卷一碑文）。卷十六揭晓真相：云秦皇帝长孙锦瑟指使真龙卫在登天山脉后设伏暗算（融魂其妖兽"麒麟"为铁证），张院长未死，进入青鸾宫冰蓝光漩（"虚空"时空通道），于另一时空（大明顺天府）化名"张居正"开启新人生。
+
+---
+
+<b>二、主线编年（按卷序）</b>
+
+<b>第一卷·帝国旅者（1–3127行）</b>
+1. 林夕（现代大学生）穿越为鹿林镇富商之子，被神秘贵妇（跨卷揭示为长公主长孙慕月）举荐参加青鸾学院大试，清秀少女（跨卷揭示为南宫未央）问话、赶车。
+2. 入试：测魂石测资质（林夕资质二/黄光），天选仪式抽中"止戈"入止戈系（秦疯子门下）。
+3. 张院长碑文揭晓——简体字留言、魂力即意念力、青色轮盘可推动；张院长去寻找青鸾宫而下落不明；独臂老人即夏副院长。
+4. 卷末第一课：独眼黑袍讲师授魂力入门、发明真丹；边凌涵被认出是"天生的风行者"。
+
+<b>第二卷·风行者（3128–6975行）</b>
+1. 佟韦借"小黑"弓测出边凌涵风行者天赋；林夕冥想速度第一但资质二。
+2. 御药系大火——唐藏潜隐南宫陌纵火调虎离山被围杀。
+3. 林夕以时光倒流能力救周舟获学分。
+4. 萧明轩发现林夕"两碗水"特质，列为天枢级机密、记录被篡改。
+5. 卷末：如东陵长公主被李骑珑伏杀悬念；太子长孙无疆以"陈暮"身份在学院就读。
+
+<b>第三卷·所谓权术（6976–11154行）</b>
+1. 如东陵刺杀事件：陵督李骑珑率数百刀客箭手刺杀长公主长孙慕月；长公主以大国师修为自伤抗敌；南宫未央以飞剑「断寒锁心」斩杀炼狱山魔武者欧阳；律政司朱墨筠当夜服毒自尽。
+2. 林夕半雪苍原突破中阶魂士、顿悟"捏住风雪"；夏副院长拒绝皇帝"交出修行方法"旨意，应允青鸾与雷霆两院新生"实修"对决。
+3. 大莽皇帝湛台莽伪装穷老人在贫民区授课，学生（湛台浅唐）精辟分析云秦"一帝九老八公"格局。
+4. 卷末：闻人苍月与鬼军师刘玉翔直面"青王重铠出自碧落边军"的元老会警告并宣战（11147–11153行）——镇西大将军正式登场（11113–11145行）。
+
+<b>第四卷·帝之争（11155–15814行）</b>
+1. 两院实修对决：皇帝北巡亲临青鸾，以"夺旗守旗·五死囚"大比逼学院就范——林夕一箭射穿贺兰悦汐、边凌涵贯眼杀刘乘恩等，雷霆四死一残、皇帝认输。
+2. 南山暮事件（碧落之乱）：闻人苍月以"起兵逆反"罪名处决左将军南山暮；南宫未央杀入救走南山暮（屠尽外围、斩二天狼卫、毁罗神幡、重创鬼军师）；南山暮率三千余兵退往般若走廊；皇帝识破是闻人苍月的局却只能"静观其变"（14315–14950行）。
+3. 闻人苍月亲赴庶人城现场勘查（15405–15437行），推理出刺客身份却误判为周首辅的人；"他想要将这天狠狠的捅一个窟窿"（15411–15433行）。
+4. 唐藏皇太后登禅殡天、谷心音出狱。
+
+<b>第五卷·出世（15815–21640行）</b>
+1. 南山暮率部反叛出关，与南宫未央逃入般若走廊外黄沙荒原；闻人苍月与皇帝/周首辅围绕"鬼军师回京、换将"生死博弈（闻人苍月未亲自登场）。
+2. 林夕七门课程全过获14学分，服叶灵芝突破初阶魂师，罗侯渊密传"明王破狱"功法。
+3. 林夕就任东港镇提捕（正十品），大破银钩坊人口贩卖案（吊死岛11具白骨、28名被掳女子、涉案15名官员、五万余两贿银），抗命拒交案犯，言官姜瑞提灯救场。
+
+<b>第六卷·踏青云（21641–27147行）</b>
+1. 姜瑞一口气弹劾二十余名官员；林夕升任东港镇警局。
+2. 马红俊（中阶大魂师）为友石三复仇，纵火典狱、追杀张二爷；林夕请宇化家供奉秦潇雨废马红俊，审出徐宁申私通千魔窟旧事。
+3. 燕来坝溃堤：林夕力主固坝被燕来镇督贺子敬拒绝，拦江坝溃塌（林夕以时间回溯预警救起一百余人）；林夕升正九品代燕来镇督、授光辉勋章（大义级）。
+4. 阉人军械黑市：王思敏被死士刺杀未遂，逼出"阉人"线索（军方中间主事者、与敌国商人军械黑市交易，四天后龙蛇北仓洞交易）。
+5. 唐藏线：确认闻人苍月封锁碧落陵、天狼卫截杀信使、疑与唐藏皇叔已有交易。
+
+<b>第七卷·龙蛇之夏（完整版14143–17246行）</b>
+1. 龙蛇边军遭穴蛮反埋伏（妖鳄、食人巨蜥骑兵）；绿野城绿瞳女子杀云秦将领郭秋冬（起因：云秦屠镇误杀绿野城小女孩）。
+2. 林夕等追查阉人至北仓洞，收陈妃蓉为门客，截获十三具天魔重铠；阉人真身=东林行省监军处指挥使沐沉允（正二品）遁走。
+3. 皇帝向长公主坦白沐沉允是他的人、重铠是他搜刮的私兵资本（忌惮闻人苍岳天狼卫、顾云静黑旗军、周首辅中州卫）。
+4. 林夕与姜笑依联手斩杀沐沉允；林夕独引追兵误入龙光采石窟修行十余日，突破高阶魂师、悟透明王破狱；公开决斗击杀许家死士薛万涛。
+5. 大莽老皇帝湛台莽咳血传位义子湛台浅唐；李苦独闯御林军击杀公瑾战王。
+6. 闻人苍岳侧面：皇帝语其"连续派人暗杀了朕派去换将的人"——领兵区域形同独立王国。
+
+<b>第八卷·白山黑水妖颜（完整版17247–21248行）</b>
+1. 穴蛮突变：会战爆发、池小夜突围；林夕南星坡死守，以将神预判力战巨蜥骑士，毒杀炼狱山圣师。
+2. 林夕携池小夜逃亡，联手杀魏贤武/徐宁申；洪流中突破大魂师，收养三尾黑狐猫"吉祥"。
+3. 大磁泽狙杀凰火笑；蓝蝶信号、穴蛮撤退、约定和谈。
+4. 闻人苍月：仅2次提及（许天望言其抗旨自保截杀宣旨人；老道言其为闻人老首辅远亲但早已失控）。
+
+<b>第九卷·归人（27148–37972行）</b>
+1. 谷心音归家：与云海小和尚、凤轩皇帝联手在流沙城刺杀唐藏皇叔萧湘，乘马车离开唐藏开始"回家"（27212–27522行）。
+2. 林夕成为灵祭祭司（三尾黑狐猫标记淡金长袍）；神威大将军顾云静亲赐无畏级勋章。
+3. 公孙泉之死：以碧蔻毒孔明灯围攻松柏居，被林夕射杀于侯雀城（31783–32776行）；南宫陌击杀碧落陵第二强者道若素，救下徐布衣与鬼军师（32854–33100行）。
+4. 太子陈暮现身碧落陵东境，策反贺叶军；林夕队接管镜天后军、斩"不死将军"秦擎黄。
+5. 山阳道会战（34644–35541行）：闻人苍月金车令歌姬弹《将军行》，以穿山弩"放风筝"飞越战场，血幡擒杀王庭供奉宋思远，赤霞飞剑连杀两名圣师，一剑刺入太子体内（太子临死真龙血脉反击重伤他）；林夕当众大喝动摇军心，碧落军三分之二倒戈；闻人苍月称"我们败了"，下令"太子、女教授和林夕，一定要死"。
+6. 闻人苍月拒绝大莽说客、一剑斩其首级，以秃鹫飞天脱身（36983–37048行）；谷心音归家，太子醒来与林夕交心。
+
+<b>第十卷·这世间（37973行起）</b>
+1. 最后一战（金色长刀）：闻人苍月藏身秃鹫群，以"魔神之链"牵引西夷圣地出土的金色长刀自天而降；南宫未央全力斩链，长刀自爆碎片洞穿众人；林夕临死推动"青色轮盘"回溯十停（37874–38516行，与第九卷末衔接）。
+2. 第二次时间线：白玉楼突袭，姜钰儿扑身挡刀而死；胥秋白以子母箭射穿林夕再射穿太子——太子长孙无疆（陈暮）死。
+3. 闻人苍月叛入大莽，与炼狱山掌教联手围杀大莽无敌国师李苦（以剑牵绊、掌教火莲轰杀、李苦留剑形骨舍利）；被封大莽兵马大元帅、掌七路大军军印（39948行）。
+4. 千魔窟三圣师级刺客刺杀被反杀——李苦骨舍利化小剑破终极杀招（40911行）；北进突袭八万千霞军、双方抛尸三万余，激怒云秦、迫使闻人家让出元老位。
+5. 云秦剧变：皇帝丧子近乎疯狂，逼退周首辅周若海、执意南伐；林夕重伤濒死被救回、突破国士阶，幕后执掌大德祥，与流亡大莽储君湛台浅唐结盟共抗闻人苍月。
+
+<b>第十一卷·游侠（完整版30722–34437行）</b>
+1. 南伐爆发：胡辟易为讨逆大元帅，三十余万大军越千霞山南伐，闻人苍月统大莽七路大军二十余万迎战——云秦立国以来最大战役。
+2. 夺月城焚城：闻人苍月以7万对20余万，触发预埋全城炼狱山"魔火片"焚城，烧死/困死十余万云秦大军，十万大莽伏军反击。
+3. 千叶关诈袭：假身迷惑主军、真身混入云秦残军诈降入关，一剑秒杀守将，连破三关、八天侵入云秦境内。
+4. 林夕以"游侠"身份十数日连刺大莽将领二十余名；审出闻人苍月水路奇袭坠星陵军情——三万六千水军偷袭焚毁坠星陵（被破坏），坠星湖南岸滩涂歼灭战林夕四箭射杀圣师阶南路大将军祁连豹，云秦终于大胜。
+5. 坠星陵决斗：胥秋白约战，林夕以"箭截箭矢"克制，最终以胥秋白自己的深红巨弓射杀之——大仇得报。
+6. 闻人苍月接胥秋白战死军报罕见失态："林夕此子，是极大的威胁，一定要将之杀死。告诉炼狱山掌教，这是我的判断。"卷末青鸾学院内乱（明哥镇场），林夕与高亚楠初吻定情。
+
+<b>第十二卷·谁能杀死林夕（完整版34438–39220行）</b>
+1. 林夕反杀老神官、夜刺大莽太子湛台守持（隔帐三箭断头）、射杀炼狱山神官纪月轮——一夜灭三巨头。
+2. 许箴言逼出张院长失踪与皇帝、三本古籍、登天山脉之后（青鸾宫）有关的惊天秘密；张院长妖兽"明哥"（鸳鸯形，大圣师）临终传法——伐骨洗髓、传授纯净"光明"与晶壁秘法，化光星消散。
+3. 闻人苍月唯一正面场（望霞关将塔）：泡祛伤汤十余天养伤（四名侍女服侍），当众杀死炼狱山神官翰神官（"可惜你修炼了魔变，却还是太慢"），与炼狱山裂痕加深。
+4. 反叛起因明确：九老否决他替补黄家入"重重帷幕之后"（进元老会）——反叛最初导火索。
+5. 林夕受封见习红袍大祭司，黑吃黑劫走闻人苍月军械。
+
+<b>第十三卷·侠之大者（完整版39221–44149行）</b>
+1. 闻人苍月为大莽七军最高统帅：坠星湖沉思→九安陵亲征（破城焚粮仓）→处置差点毁掉夺月城之战的云秦女潜隐（赞赏其洞察力后仍灭口）→掷瓦片抽签选中韶华陵。
+2. 与周首辅世纪之战：冰雪巨人之力+佟韦一箭毁李苦之剑+贺白荷天人剑痕，闻人苍月被重创败走——"再一百年不可能进阶大圣师"，由盛而衰的转折点。
+3. 卷末独白：执念载体为脑中李苦之剑，可能以圣师之身挑战大圣师级存在（第十四卷悬念）；与林夕为"宿命般双星"，本卷未正面交手。
+
+<b>第十四卷·大行（完整版44150–48081行）</b>
+1. 诛心局：闻人苍月派春剑南携花寂月人质逼林夕毁大黑；林夕以时间回溯+攻心+流沙毒反杀春剑南、燃命救花寂月、保住大黑。
+2. 闻人苍月状态侧写：重伤（被贺白荷以命重创、周首辅亦重创过）、"像老鼠一样躲着大黑"、被炼狱山长老请诛但被掌教保下（"我留着他，自然有用"）、向皇帝索神木飞鹤符文；林夕宣判"注定死在我手里"。
+3. 林夕大婚；李开云被军部内奸出卖战死；林夕入中州城当街复仇、斩狄愁飞、携冷秋语乘金色凤凰出城，正式与帝国决裂。
+
+<b>第十五卷·将神（完整版48082–53893行）</b>
+1. 夏副院长临终揭示"大圣师自爆"终极设定并辞世；张平在天魔狱原修成魔变、晋升炼狱山大长老；林夕修成魔变、春刺大莽；顾云静（实为大圣师）血枪击杀炼狱山大长老后力竭而亡。
+2. 闻人苍月受云秦皇帝所赠惠灵丹与神木飞鹤符文（"自古名将如美人，最悲便是见白发""我的时间还很长，你的时间却已经快到了"），奉炼狱山掌教之命潜入云秦。
+3. **闻人苍月被擒斩首（如东陵）**：千霞山终极对决——边凌涵一箭逼落，南宫未央"以伤换力"死磕七曜魔剑数百击逼他魂力耗尽、膝盖碎裂；他自毁左臂轰出李苦剑意终极一剑（七曜魔剑炸裂），被林夕将神预知+倾尽魂力破去；手脚尽废、全身瘫痪，临死崩溃求活被拒（"我只是想成为九元老之一，只是皇帝……"）；时谦打入锁链"你的时代，已经结束了"；押回云秦如东陵当众斩首："负云秦者，当如此贼！"（第718–719章）尸身验出惠灵丹药力，反噬皇帝。
+4. 炼狱山掌教之死：千叶关终战——林夕自毁大黑诛杀炼狱山掌教，倪鹤年陨落，将神时代开启。
+
+<b>第十六卷·人生就是一面镜子（完整版53894–60284行）</b>
+1. 张平夺位：亮出铠甲图纸、魔变（纯黑）逃向天魔狱原，以"审判之火"压杀大长老，坐上炼狱山掌教之位。
+2. 林夕逼云秦皇帝退位、以暮光剑突破圣阶；皇帝临死展露融魂张院长"麒麟"（暴露暗算张院长旧案），死于中州百姓暴乱；长公主继任云秦女皇。
+3. 张平叛变：雷鸣山崩塌（凰火笑倒戈救人、众人假死隐匿）；中州城魔王战——张平着"不灭"铠甲，林夕、南宫未央两大最强圣师皆无法破甲；张平入主真龙山、囚长公主。
+4. 登天山脉之后：林夕、南宫未央、秦惜月翻越登天山脉抵达青鸾宫遗迹；张院长遗书——参悟冰蓝光漩即"虚空"（时空通道），进入后不再回来（"再见了，老乡"）；林夕放弃将神、吞噬虚空能量，成为超越大圣师的存在。
+5. 最终决战（鳌角山）：张平着"不灭"被林夕万剑破甲、现"魔王之躯"；林夕以真龙剑贯穿其胸、冰封黑虫、融魂金雷轰碎剑身；玄远"舍身"破魔王转生；张平被千剑凌迟断四肢坠地，心脏自行裂开枯萎而死。
+6. 大结局：许箴言逃亡倒地而亡；艾绮兰与蒙白做乡村教师；高亚楠与林夕团聚（有孕）；青鸾学院"化成温柔的雨滴"；张院长在另一时空（大明顺天府）化名"张居正"开启新人生。
+
+---
+
+<b>三、闻人苍月个人时间线（登场→割据→会战→叛逃→焚城→诈袭→养伤→诛心局→被擒→斩首）</b>
+
+1. **登场（第三卷末）**：青鸾学院出身、自改"闻人苍岳"（嫌"月"女气）；曾任正武司兵马大提督，因太聪明太有野心被外放碧落边军任威武大将军，失去进元老会机会（8450–8468行）；面对"青王重铠出自碧落边军"的元老会警告宣战，自认还有六七十年年富力壮（11147–11153行）。
+2. **割据（第四至八卷）**：处决南山暮制造"碧落之乱"（14315–14950行），亲赴庶人城勘查误判周首辅（15405–15437行），"他想要将这天狠狠的捅一个窟窿"；此后封锁碧落陵、截杀信使、暗杀换将队伍，领兵区域形同独立王国；与西夷"养狗"式合作、与唐藏皇叔勾连（第六卷）。
+3. **会战（第九卷）**：山阳道会战——穿山弩飞天、血幡擒宋思远、赤霞飞剑连杀两圣师、一剑刺太子，被真龙血脉反击重伤；下令"太子、女教授和林夕，一定要死"；拒大莽说客（"李苦，也是我在这个世上需要击败的对手"），秃鹫脱身（34644–35541、36983–37048行）。
+4. **最后一战与叛逃（第十卷）**：魔神之链牵金色长刀自天而降，刀炸碎片洞穿众人，胥秋白射杀太子（37874–38516行）；随后叛入大莽，与炼狱山掌教联手围杀李苦（以剑牵绊、李苦留剑形骨舍利），被封大莽兵马大元帅、掌七路大军军印（39948行）；千魔窟三刺客被反杀（40911行）；北进突袭千霞军、迫使闻人家让出元老位。
+5. **焚城（第十一卷）**：夺月城焚城——以7万对20余万，触发预埋全城炼狱山"魔火片"焚城，烧死/困死十余万云秦大军，十万大莽伏军反击；此前年初令七军广收皮革暗制皮筏，谋水路奇袭坠星陵。
+6. **诈袭（第十一卷）**：千叶关诈袭——假身惑敌、真身混入残军诈降入关，一剑秒杀守将，连破三关、八天侵入云秦境内（"阴谋和武力一样重要"）；接胥秋白战死军报罕见失态，对林夕下必杀令。
+7. **养伤（第十二卷）**：望霞关将塔泡祛伤汤十余天疗养（四名侍女服侍）；当众杀炼狱山神官翰神官、与炼狱山裂痕加深；九老否决他替补黄家入元老会（反叛最初导火索）；委托炼狱山执行杀林夕之局。
+8. **由盛而衰（第十三卷）**：九安陵亲征、处置云秦女潜隐；与周首辅世纪之战被重创败走——"再一百年不可能进阶大圣师"。
+9. **诛心局（第十四卷）**：派春剑南携花寂月逼林夕毁大黑，被反杀；重伤惧大黑、被炼狱山长老请诛但得掌教保下（"我留着他，自然有用"）、向皇帝索神木飞鹤符文；林夕宣判"注定死在我手里"。
+10. **被擒与斩首（第十五卷）**：受惠灵丹（"自古名将如美人，最悲便是见白发""我的时间还很长，你的时间却已经快到了"）；千霞山终极对决——被边凌涵一箭逼落，南宫未央以伤换力死磕七曜魔剑数百击，他自毁左臂轰出李苦剑意终极一剑被林夕破去，全身瘫痪；临死崩溃求活被拒（"我只是想成为九元老之一，只是皇帝……""我可以帮你对付皇帝……我可以做你的军师"）；押回云秦如东陵当众斩首："负云秦者，当如此贼！"（第718–719章）尸身验出惠灵丹药力，成为压垮云秦皇帝权柄的第一块多米诺骨牌。
+11. **死后余响（第十六卷）**：南宫未央自与他的数次战斗悟得近身剑意——"她一生与他作对，却在一次次失败中偷走了他的剑"；蒙白面对被擒的他哭喊逃跑（此为其"胆小鬼"成长线起点）；林夕自述"闻人苍月死在了我们的手中"。
+
+&gt; **卷次存疑注**：主研究文档"重要更正"称闻人苍月"死于第十四卷、被林夕当众斩首于如东陵"，与第十五卷精读笔记（第709–719章：受惠灵丹、终极对决、如东陵斩首均在第十五卷）存在标注分歧；第十六卷笔记亦称其死亡之战在"全书约49300–49900行"（属第十五卷行号范围）。本编年按任务框架采信**第十五卷**，仅此存疑，供复核。
+
+---
+
+*整理自工作区四份精读素材（主研究文档 380 行全文 + 卷九/卷十五/卷十六笔记）。*
+</div></details>
+<details class="libsec" style="margin:6px 0;border:1px solid #2a3d5f;border-radius:8px;padding:6px 10px;background:#131e33;"><summary style="cursor:pointer;font-weight:bold;color:#4d8fd4;">📖 03-世界观设定</summary><div style="white-space:pre-wrap;margin-top:6px;color:#dbe6f5;font-size:13px;line-height:1.7;"><b>《仙魔变》世界观设定集</b>
+
+&gt; 依据工作区精读笔记整理：主研究文档《仙魔变-闻人苍月-BG同人研究》（合并各卷）+ 第七、八、九、十六卷精读笔记；黑金马车、坠星弩、坠星天凤、神木飞鹤、明真丹、惠灵丹、御都科等条目另以第三、十一、十二、十四、十五卷笔记补全。每条标注卷出处，不掺虚构。
+
+<b>一、修行体系</b>
+
+**魂力与本质**：魂力即精神／意念之力，修行者由内而外改造肉身（武者反之）；意志越强、越接近极限修炼越快；「生死之间有大恐怖」是修行者必须面对的心境之坎（张院长八字真言）。身体如「碗」，资质（碗）越大修为上涨越慢；灵药只对国士以下有效（第三卷、第七卷）。
+
+**境界阶位**：魂士→魂师→大魂师→国士→大国师→圣师→大圣师。
+- 魂士：初／中／高阶（第七卷）。
+- 魂师：口语「布气境」，高阶为「洗伐」→魂力透发毛发（第七卷）。
+- 大魂师：口语「加持境」，魂力透入魂兵符文使魂兵「复活」；魂力透体（第七、八卷）。
+- 国士：结丹，修出魂丹便称国士（第三卷）。
+- 大国师：「人中蛟龙」，可融魂（第七、九卷）。
+- 圣师：魂力离体、御剑；御剑圣师为顶尖（主文档）。
+- 大圣师：凝兵境（主文档魂力九级：魂士震体／魂师布体／大魂师加持兵刃／国士结丹／大国师融魂／圣师魂力离体御剑／大圣师凝兵／八九级神）。进阶极难——闻人苍月被贺白荷重创后「再一百年不可能进阶大圣师」（第十三卷）；顾云静两年前悄然进阶大圣师（第十五卷）。
+
+**飞剑与御剑**：飞剑弱者止于百步、强者千步杀伐；剑感为大国师级才有（林夕因天赋提前拥有）。飞剑夺取原理：符文不同、需时间排除对方魂力，故无人能强夺。剑道流派：近身剑道（闻人苍月、道若素，离身体越近越强）、千魔窟「飘叶剑道」（省魂力、轨迹诡异）、南宫未央「连杀剑道」（持续灌输）（主文档、第九卷）。
+
+**融魂**：国士阶以上、需意志交锋；被迫融魂可行但需国士阶方能真正融合。例：长公主融魂镜天人鱼（第三卷）、边凌涵融魂镜天人鱼（第九卷）、云秦皇帝融魂张院长的麒麟（第十六卷）。
+
+**魔变（炼狱山）**：平日以灵药／灵兽血改变气血特性，战时以魂力激发，数停内战力暴涨一级（国士可升大国师）；用后经络肌肉受损需长期调养；魔变者呈黑色血脉；极少与御剑同修于一人（第三、八卷）。林夕、张平均修成魔变（第十五卷）。
+
+**成魔**：仙魔时代修魔者根本功法——杀死修行者、于其意识消散瞬间吞噬元气与修为，修行速度数倍于常人；需真正魔变的身体承受「毒素」，为炼狱山一切之根；成魔者不可修仙道（第十六卷）。
+
+**将神天赋**：张院长与林夕共有的超常天赋——魂力为常人一倍、直觉超常（可「以箭截箭」）、能「回去」十停时间（体内青色轮盘）（第五、十一卷）。本质是与虚空光漩的独特感应，可预知／回退时间；林夕最终主动放弃将神，换取超越大圣师之力（第十六卷）。
+
+**风行者**：箭技＋对天地风向流动的感知，箭矢力量可超过自身全力一剑、能越级挑战；「天生的风行者」边凌涵（第一、三卷）。
+
+**正将星**：二十年间公开记载十五名，无一不是帝国军神，仅三名未捐躯（第三卷）。
+
+**天生道心者**：南宫未央——天生道心、记事极早、从不说假话（第九卷）。
+
+**大圣师弱点体系**：笔记明确第十五卷世界观含「大圣师弱点体系」设定（大圣师并非无敌、存在破绽）；可考的破绽之一即魔变死穴＝肝脏／怒火——上古成魔者须「制怒」，怒火攻心则肝脏致命受损，「轻则无法魔变，重则衰竭而亡」（齐逆鳞揭示，第十六卷），正是魔王张平最终被「愤怒」杀死的原理。
+
+<b>二、魂兵与军械</b>
+
+**魂兵与符纹**：魂兵有剑、弓、幡、杖、琴等，幡类克制飞剑（主文档）；符纹体系：黑水金配水云纹、黑王铁配金凰纹、赤铁配长青纹、银耀金配古藤纹（主文档）；透明丝线魂兵「浴球」可令魂力感知延伸数百步，为飞剑控远之秘（第八卷）。
+
+**魔神之链**：千魔窟／炼狱山最高机密，闻人苍月竟掌握其炼法；以之牵引西夷圣地出土的金色长刀化金色雷霆自天斩落（第九卷末～第十卷）。
+
+**骨舍利**：李苦身死留剑形骨舍利，被闻人苍月所得；怀中骨舍利曾化小剑一击破灭千魔窟终极杀招（第十卷）；后悟出李苦剑意，终极一剑灌入七曜魔剑（第十五卷）。
+
+**大黑与小黑**：大黑为张院长长弓（主文档）；小黑是「大黑」之下的长弓，林夕所用，魂力如被怪兽吞噬、大魂师也只能射两箭（第九卷）；张院长妖兽「明哥」临终夺回大黑后化光星消散（第十二卷）；闻人苍月重伤后「像老鼠一样躲着大黑」（第十四卷）。
+
+**神木飞鹤**：青鸾学院天工系秘密制成的载人飞行符文木鹤（战略级军械，神木出自登天山脉；学院一月三只、皇城一月一只）（第十一、十二卷）；炼狱山培育对木质敏感的虫豸千里追踪＋飞絮魂兵扰乱元气以克制（第十五卷）；闻人苍月败后向云秦皇帝索神木飞鹤符文图谋遏制（第十四卷）。
+
+**天魔重铠**：炼狱山至宝——天魔泪金＋天魔蓝宝石符文＋夜魔金披风（可滑翔）；唯巅峰大魂师以上可御使，国士穿上可抗衡大国师（第七卷）；四十具重铠曾屠杀江家（第十二卷）。
+
+**弩类与重铠**：穿山弩（一次三箭、射程一千五百步、可洞穿大国师；闻人苍月以穿山弩＋百炼钢索「放风筝」飞越战场）（第九卷）；坠星弩（守城弩之最，纪念张院长坠星湖一役）（第十一卷）；贯月弩（仅次穿山弩）（第九卷）；青狼重铠（魂兵重铠，青狼重铠军为闻人苍月奔袭劲旅）（第九、十一卷）；青王重铠（边军独有主战重铠，国士修为＋天生神力方能轻装披挂）（第三、七卷）。另：旋刃车、投石车、獠牙弩、风神巨弩、莲花月刃车、盐霜巨猿战车、黄铜鹰眼（第七、八、十一卷）；夜魔铠、夜枭重甲、绿蜥甲（第七卷）；黑鱼魂兵重铠（私铸）、青莲战甲（第九卷）；「不灭」铠甲（学院集大匠所造、张平据为己有）（第十六卷）。
+
+**箭类**：超风／雕空符箭（第九卷）；蓝鳅箭（锥形镀晶、风阻极小、洞穿力强）、晶钢箭、破甲箭（第八卷）；墨羽纹钢箭、火磷箭（第十一卷）。
+
+<b>三、政治格局</b>
+
+**一帝九老八公**：皇帝（长孙锦瑟）＋九名元老（坐重重帷幕之后）＋八公，为云秦最高权力格局；九老互相争斗但合力维持元老院、共同「敌人」是青鸾学院（主文档、第三卷）。周首辅绝对效忠皇帝，其余八位监督防备皇帝与青鸾学院（第三卷）。
+
+**九大家族**：闻人家、江家、容家、宇化家、胡家、黄家、陈家、钟家、孔家；冷家后取代黄家（主文档）。闻人苍月为闻人老首辅远亲、族中推上位却早已失控（第八卷）。
+
+**八司**：正武司、内务司、刑司、吏司、工司、律政司、礼司、户司（主文档）；另有权力极大的监军处（监察行省正武司官员）（第七卷）；御都科独立于八司之外（第十二卷）。
+
+**官阶体系**：行政划分镇→陵→郡→行省（34行省）（主文档）。官阶例：正十品提捕（林夕东港镇）、正九品代镇督、从七品巡牧尉、正五品巡捕督察、正四品大都督（狄愁飞）、从四品大统领（凰火笑）、正三品大督察（萧铁冷）、正二品监军处指挥使／御都科大督察、正一品千霞边军（胡辟易）；闻人苍月职阶等同正武司副司首（主文档、第七、八卷）。云秦重武：官员与囚徒可合法决斗、官员之间决斗不予批复、辞呈需吏司核准（第七卷）。
+
+**勋章体系**：天耀、将星、神鸳、荆棘、坠星、无畏、无私、大义、丹心九级十六种（主文档）；荆棘徽章（执行两次以上极险刺杀／营救）、坠星徽章（大战中超凡勇气）（第一卷）；林夕获光辉（大义级）、无畏级勋章（第六、九卷）。
+
+**黑金马车**：先皇御赐九辆，九大家族元老专用、可直入皇城；九老黑金马车并驱即最强表态；原九辆现七辆（黄、闻人已失势）（第十一、十二卷）。
+
+**御都科**：首辅文玄枢与许箴言所设、独立八司之外的新机构（类锦衣卫＋廉政公署），御都史刘学青、大督察许箴言、稽调史汪不平（第十二卷）。
+
+**大德祥**：林夕幕后执掌、云秦第一商号，陈妃蓉任大掌柜；以腐乳、皂膏、金柚蜜茶等起家，货物遍布云秦乃至中州皇城、金柚蜜茶垄断（第七、九、十卷）；终局以断粮之计瓦解张平的信徒大军（第十六卷）。
+
+<b>四、学院与势力</b>
+
+**青鸾学院（六系）**：历史最悠久、张院长创办，位于登天山脉；六系：止戈、文治、御药、天工、灵祭、内相（第三卷）；天枢峰、试炼山谷、哀牢后山、最矮山峰禁地（第十一卷）；学生毕业即相当于镇督级别（主文档）。理念分歧：夏副院长／萧明轩／罗侯渊等忠于张院长理念（「对生命起码的尊重和怜悯」）vs 徐生沫等改革派主张云秦利益高于学院（主文档、第三卷）。另有守夜者、暗祭司、潜隐（第九卷）；张院长妖兽「明哥」（鸳鸯形、大圣师）（第十二卷）。
+
+**雷霆学院**：皇帝与陈家创立，真龙雷金炼魂兵（主文档）；为皇帝与九老扶持以制衡青鸾学院者（第三卷）；雷鸣山后被张平以「沸水注矿脉」崩塌（第十六卷）。
+
+**仙一学院**：狄愁飞、郭秋冬、燕玄一出身（第八卷）；青蜂针暗器（第七卷）。
+
+**清河学院**：闻人苍月扶持十余年、从三流变为二流翘楚（第九卷）。
+
+**般若寺**：唐藏圣地，般若忘我禅（第七卷）；真毗卢（入世僧、曾以一人之力迫退闻人苍月）、云海小和尚（第九卷）；般若寺本源为魔王另一脉传承，「佛与魔是魔王的两所房子」（第十六卷）。
+
+**炼狱山**：大莽修行圣地，魔变发源（第三卷）；建于火山口群（墨玉大殿、红宝石王座），权杖长老六名、「申屠」为掌教一脉姓氏、可号令大莽全部修行者（第十一卷）；至宝天魔重铠（第七卷）；黑虫、火魁、天魔宫技术（第十六卷）；张平最终夺掌教之位（第十六卷）。
+
+**千魔窟**：大莽另一支脉（「魔体决」）（主文档、第六卷）；千霞山龙脊崖（第三卷）；飘叶剑道（第九卷）；「封魔」秘术（第十五卷）；被炼狱山清洗后地位恢复（第十一卷）。
+
+**祭司殿**：五级祭司——战争祭司（紫红袍、绣刀剑兵刃）、镇魂祭司（灰袍）、灵祭祭司（淡金袍、以拥有妖兽伙伴为唯一标准）、大祭司（红袍、可任免祭司）、终身大祭司（金袍、不可被罢免）；祭司殿独立于朝堂，秘术「光明眼」辨真伪（第九卷）；战争祭司传信仰、治心理创伤，安魂祭司招魂安魂（第八卷）。
+
+**王庭供奉**：王庭大供奉倪鹤年（银发老道、忠于皇命）（第七卷）；供奉宋思远被闻人苍月血幡擒杀（第九卷）。
+
+**天狼卫**：闻人苍月的私兵精锐——最会战斗的修行者死士，白铜面具、背双长刀、披天狼铠（主文档、第九卷）；令皇帝忌惮（第七卷）；碧落陵会战后近灭（第十一卷）。
+
+**黑旗军**：龙蛇边军王牌，全由修行者组成（「龙蛇山脉中的死神」），顾云静执掌（第七卷）；历史久于天狼卫、云秦现存最强军（第十一卷）。
+
+<b>五、地理</b>
+
+**云秦**：34行省、中州皇城（真龙山、无疆行宫）（主文档、第七卷）；北有登天山脉、东有龙蛇山脉（第七卷）。
+
+**碧落陵**：云秦西方约四分之一疆域（两三个行省）、西夷十五部旧地；含镜天湖、乌拉唦／聚宝盆、山阳道（唯一战略要道）、迷踪林、般若走廊（第九卷）；即云秦最西边、唐藏最东边（第三卷）；闻人苍月总镇，两千余里防线、七万边军（第四卷）。
+
+**龙蛇山脉／大荒泽／绿野城**：龙蛇山脉为云秦最东端、一龙一蛇两条交缠巨脉（白山黑水），与大荒泽接壤（第七、八卷）；大荒泽为穴蛮地盘、一望无垠的泥沼湿地，张院长时代青鸾学院亦无人穿越（第七卷）；绿野城是大荒泽之后的修行者城邦（部落级），崇自然厌战、绿瞳绿发肤白如雪，再往东是无尽东渺海；活树建城、天生修行者种族（第七、八卷）。
+
+**登天山脉之后**：冰雪神原（张院长碑文预言青鸾宫在登天山脉以北冰雪神域）（第一卷）；冰晶谷／冰雪古城／青鸾宫（第十二卷）；青鸾宫遗迹有冰晶神谷大阵（唯将神能过）与冰蓝光漩即「虚空」（时空通道）（第十六卷）；天魔狱原为炼狱山南无尽禁地（第十一卷）、仙魔大战魔道消亡的遗迹（第十六卷）。
+
+**唐藏**：古国，凤轩皇帝主政、病重皇太后、般若寺、神象军（主文档、第三、九卷）；流沙城为刺杀唐藏皇叔萧湘之地（第九卷）。
+
+**大莽**：帝国，老皇帝湛台莽传位义子湛台浅唐（第三、七卷）；炼狱山、千魔窟（第三卷）；第一强者李苦（观虾悟道）（第八卷）。
+
+**西夷十五部**：六十年前东侵被张院长打垮、沦为沙漠流寇（「秋收／秋蝗」）（第三卷）；首领被张院长一夜斩尽后逃入般若走廊后荒漠，分为六七百人小部（第九卷）；被闻人苍月「养狗」般畜养并秘密交易（第三、九卷）；鬼军师实为西夷罗神部落修行者（第四卷）。
+
+<b>六、关键地点</b>
+
+- 青鸾学院：登天山脉，天枢峰、试炼山谷、哀牢后山、止戈系山谷（第一、十一卷）。
+- 镜天湖：辽阔位列云秦前三、无人行船、多异兽，镜天人鱼栖息地（第三、九卷）。
+- 般若走廊：碧落陵与唐藏／荒漠相接的战略要道，闻人苍月曾封锁（第九卷）。
+- 息子江：东港、燕来等四坝所在（主文档）；燕来坝溃堤事件（第六卷）；息子江龙王张二爷（第十一卷）。
+- 坠星陵／坠星湖：张院长坠星湖一役之地（第十一卷）；闻人苍月三万六千水军水路偷袭焚毁坠星陵（第十一卷）。
+- 鳌角山：林夕攻破的堡垒（第十一卷）；张平东进欲灭穴蛮、最终决战地（第十六卷）。
+- 千叶关：闻人苍月诈降入关、连破三关八天侵入云秦（第十一卷）；终战之地（第十五卷）。
+- 如东陵：长公主遇刺事件（第二、三卷）；闻人苍月被当众斩首之地（第十四卷）。
+- 其他：北仓洞、三茅峰／龙须瀑／龙光采石窟（第七卷）、大磁泽／泥湖（第八卷）、侯雀城／松柏居／迷踪林／山阳道（第九卷）、鹿林镇（第一卷）、真龙山（第七卷）。
+
+<b>七、时间单位与杂项</b>
+
+**时间单位**：一息＝1秒，一停＝1分钟，十停＝10分钟；林夕「回到十停之前」即回到十分钟前（主文档、第五、九卷）。
+
+**丹药**：明真丹——青鸾学院独有，助修行者突破「感知自身魂力」关口（第一卷）；与唐藏慧灵丹为唯一两种可跨过此坎的丹药（第三卷）。惠灵丹——云秦皇帝所藏古丹（笔记作「惠灵丹」，唐藏者作「慧灵丹」），可使身体重返强健不再衰老、代价是修行资质略降，唯有一颗为先皇赐下（第十五卷）；闻人苍月受此丹（第十四卷）。蓝杏——安可依的毒药，曾毒倒圣师程玉亲率的青色大军（含近半天狼卫）（第九卷）。流沙——公孙泉绝毒（般若走廊沙虫粪便毒素、无味无解、浑身沙样溃烂），安可依赠林夕绝毒加三颗解药、世上已无人能再炼（第九卷）。其他：山海丁香丸、聚魂丹、冰鸾丹（学分兑换）（第三卷）、赤麻芝（第七卷）、魔眼花（第十六卷）。
+
+**妖兽**：镜天人鱼——人形鱼尾、喷水柱洞穿人体，国士巅峰级妖兽、湖周十余里为领地；长公主、边凌涵先后融魂（第三、九卷）。三尾黑狐猫「吉祥」——厄运／堕落妖兽传说，云秦史上首例被收服；冰寒吐息、感知寻宝、国士级，来自登天山脉冰原（第八、九卷）。坠星天凤（「凤」）——张院长命名的圣阶妖兽、世间最强妖兽之一，金色巨鸟，曾于坠星湖歼灭南摩国整支水军；金中带银羽毛可解毒、额骨晶可制箭簇；林夕获幼雏「瑞瑞」、乘成凤离城（第十一、十四卷）。食人巨蜥——皮厚刀剑难破，喂法精藤叶可驯服为坐骑，穴蛮巨蜥骑兵即其骑兵（第七、八卷）。其他：银婆龙、闪电蟒、巨甲虫、血红巨蚁、食腐巨鹫、天茯獭（第七、八卷）；剑灵（白色剑妖）（第十六卷）；明哥（鸳鸯、大圣师）（第十二卷）；麒麟（第十六卷）。
+
+**异族**：穴蛮——大荒泽土著，身高近两米、青铜色肌肤、天生神力，云秦需四比一人数方稳胜；本无文字、战法蠢笨，后学会埋伏设伏与巨蜥骑兵（第七卷颠覆认知、第八卷）。绿野城人——绿瞳绿发、天生修行者、擅御植之术、崇自然厌战（第七、八卷）。西夷——游牧部落，沦为沙漠流寇（第三、九卷）。
+
+---
+
+**说明**：以上全部条目均出自工作区精读笔记并标注卷出处；笔记中存在原文表述差异处（如「大国士→圣师→大圣师」异文、唐藏「慧灵丹」与皇帝「惠灵丹」字形相近是否同一物笔记未明言）均已如实保留，未作臆断。
+</div></details>
+<details class="libsec" style="margin:6px 0;border:1px solid #2a3d5f;border-radius:8px;padding:6px 10px;background:#131e33;"><summary style="cursor:pointer;font-weight:bold;color:#4d8fd4;">📖 04-闻人苍月BG同人专档</summary><div style="white-space:pre-wrap;margin-top:6px;color:#dbe6f5;font-size:13px;line-height:1.7;"><b>《仙魔变》闻人苍月 BG 同人专档</b>
+
+&gt; 本专档为闻人苍月 BG 同人创作的一站式人物+关系+创作指南。
+&gt; 基于全书 16 卷精读整理（2026-08-16），所有引用均出自完整版原文。
+
+---
+
+<b>一、人物核心档案</b>
+
+<b>基本信息</b>
+- **本名**：闻人苍月；自改"闻人苍岳"（嫌"月"字女气）；旧识与民间仍称"闻人苍月"、朝野尊称"闻人大将军"
+- **职位轨迹**：镇西大将军（总镇碧落边军，职阶等同正武司副司首）→ 大莽七军最高统帅/兵马大元帅
+- **年龄**：登场时约三十岁（"面目只有三十如许"）
+- **出身**：青鸾学院出身（校友）；闻人老首辅远亲（族中推上位但早已超出家族控制）
+- **实力**：圣师阶无敌的御剑圣师；赤霞飞剑、近身剑道（越近越强，五步之内天下能接其一击者唯有数人）、血色长幡（克制飞剑）、金色长刀+魔神之链（千魔窟/炼狱山秘法）、李苦舍利剑与千魔窟"封魔"秘术、秃鹫群（飞天遁术）
+- **外貌**：眉浓如墨、唇红如锦，铁铸般魁梧身躯，普通青布衣（不重排场）；"墨浓如墨，唇红如锦，身躯如同铁铸，脸上的线条说不出的冷酷和坚毅"
+- **名言**："不和这天下为敌，像我这样的人，生在这世上还有什么意义？""阴谋和武力一样重要""负云秦者，当如此贼！"（斩首时林夕语）
+
+<b>性格核心（BG 创作的人设基石）</b>
+1. **枭雄**：狠辣、大胆、睚眦必报、知人善用、有野心但不多疑；"一将功成万骨枯"
+2. **"圣"字自居**：漠视普通人但尊重强者——"要再在意那些普通人，远远不如我们的人的看法，那便是自己找败而已"（**女主需以强者身份登场方能入他眼**）
+3. **对旧部重情**：鬼军师（唯一挚友）、胥秋白之死令他指节发白、罕见托下巴沉思
+4. **绝对自信**："不是不能败，只是从未败过"；"我的时间还很长，你的时间却已经快到了"
+5. **执念**：进元老会（"我只是想成为九元老之一，只是皇帝……"）——叛国、焚城、杀太子的悲剧内核
+6. **由盛而衰**：被周首辅重创后"再一百年不可能进阶大圣师"，但仍执念"圣师便一定杀不死大圣师？"
+
+<b>完整人生轨迹（时间线）</b>
+| 阶段 | 事件 |
+|---|---|
+| 登场（第4卷） | 镇西大将军，与鬼军师密议"青王重铠"事件，宣战元老会 |
+| 割据（第7卷） | 抗旨自保、截杀宣旨人，领兵区域形同独立王国 |
+| 会战（第9卷） | 山阳道会战刺太子（陨石流星式飞天、赤霞飞剑、血色长幡） |
+| 叛逃（第10卷） | 叛入大莽，联手炼狱山杀李苦，封大莽兵马大元帅 |
+| 焚城（第11卷） | 夺月城魔火片焚城（烧死云秦十万）、千叶关诈袭连破三关 |
+| 养伤（第12卷） | 望霞关泡药汤十余天，当众杀炼狱山神官 |
+| 由盛而衰（第13卷） | 与周首辅世纪之战被重创 |
+| 诛心局（第14卷） | 派春剑南携花寂月逼林夕毁大黑，被反杀 |
+| **死亡（第15卷）** | 被林夕一行击败生擒，押回如东陵当众斩首（原文49813行） |
+| 余波（第16卷） | 尸身验出皇帝惠灵丹药力，反噬皇帝；南宫未央悟得他的近身剑意 |
+
+---
+
+<b>二、BG 关系锚点：闻人苍月 × 南宫未央（原著现成素材）</b>
+
+<b>五阶段关系线（全书）</b>
+1. **初识（第4卷）**：她独闯深巷斩杀其部下、救走南山暮；他事后勘查推理出"年轻圣师、已受重伤、能调动皇城力量"——**误认她是周首辅的人**（追猎×误认起点）
+2. **缠斗（第9卷）**：她杀他西夷内应阿孜岢、独剑突袭封林军、杀他天狼卫和门客；他从未正眼留意她（她只是"要杀的学院的人"名单里的"御剑圣师"）
+3. **正面对决（第10卷）**：她飞剑斩断他的魔神之链，被金色长刀自爆碎片洞穿、几乎丧命；"她不喜欢闻人苍月，非常不喜欢……还有，闻人苍月是这世间最为强大的御剑圣师之一"
+4. **终战（第15卷）**：她以"以伤换力"死磕七曜魔剑数百击，逼他魂力耗尽、膝盖碎裂
+5. **他临终的悔恨（第15卷）**：
+   - "她这一生都好像在专门和他作对。他所做的每件大事，都会遭遇到这名他原先根本不放在眼里的面嫩圣师"
+   - "他从来没有后悔二字，然而此刻心中却产生了一丝悔意——后悔自己没有早些杀死这名面嫩圣师"
+   - "我唯一失算的，是没有想到这世上还有修行速度比我还要快出许多的人，我低估了她的实力"
+   - 她在终战前"感觉到了爱是什么、恨是什么、友情是什么"
+
+<b>传承（第16卷）</b>
+南宫未央从与他的数次战斗中悟得近身剑意——"她一生与他作对，却在一次次失败中偷走了他的剑"（她凭此成为对张平的最强一击）。
+
+<b>为什么这是最好的 BG 素材</b>
+- 厌恶、忌惮、战意、偷师、悔恨——**五重张力俱全**
+- 她是唯一能正面接住并破解他绝杀一剑的人（宿敌/镜像关系）
+- 他临终的悔恨给了同人"迟来的懂得"的情感落点
+- 她最终无明确感情归宿（同人可自由发展）
+
+---
+
+<b>三、其他可用女性锚点</b>
+
+| 人物/意象 | 素材 | 同人价值 |
+|---|---|---|
+| **歌姬** | 金车中"衣着十分华贵的美丽歌姬，捧玉石琵琶"，他让她弹《将军行》（战场仪式） | 铁血将军与乐者的意象 |
+| **四名侍女**（第12卷） | 泡药汤时"沉默添柴""见多了血腥场面"、为他擦洗换衣 | 贴身侍女/温情留白 |
+| **云秦女潜隐**（第13卷） | 唯一直接女性互动：他赞赏其"细致洞察力便是我昔日碧落陵全军都无人能及"、容忍其顶撞、敬重致谢，但照杀不误（灭口） | 欣赏与杀伐并存的枭雄底色 |
+| **长公主长孙慕月** | 如东陵刺杀长公主"就是接下来一切事情的开端"；长公主暗中助青鸾学院 | 因果暗线可深挖 |
+| **深巷琵琶女**（第4卷） | 庶人城深巷远处楼阁琵琶声弹《将军行》，弹奏者身份不明 | 原创女主钩子 |
+
+---
+
+<b>四、同人创作切入点（5 种关系型）</b>
+
+1. **宿敌/镜像型**（最推荐）：南宫未央——"她讨厌他，他低估她；她的剑正面对上他，是她此生最惨烈一败；临终他悔恨低估了她"。可从"追猎×误认"开始写到"迟来的懂得"
+2. **追猎者×猎物型**：他记住了"年轻圣师"（误认周首辅的人），她重创了他唯一挚友鬼军师
+3. **琵琶女型**（原创）：深巷《将军行》弹奏者 / 金车歌姬
+4. **政治联姻/理解者型**：他被皇帝、九老、青鸾学院、大莽四方围剿（"他想要将这天狠狠的捅一个窟窿"），需要"理解者"
+5. **临终/死后视角**：他被擒斩首前的求饶与自白（"我只是想成为九元老之一"）；或死后余波（惠灵丹药力反噬皇帝、南宫未央悟剑）
+
+<b>时间点推荐</b>
+- **碧落陵称雄期**（第4-9卷）：他权倾天下、野心膨胀、与皇帝暗战——适合"强势男主×初遇女主"
+- **大莽大元帅时期**（第11-12卷）：焚城、诈袭、养伤的枭雄岁月——适合"孤狼男主×理解者女主"
+- **临终前后**（第14-15卷）：求饶、自白、悔恨——适合虐恋/救赎向
+
+---
+
+<b>五、创作禁忌与设定提醒</b>
+
+- 闻人苍月死于**第十五卷「将神」**（被林夕斩首于如东陵，原文第49813行），不是"全书未死"——**时间基准务必正确**
+- 原著中他感情世界**几乎完全留白**（无婚配、无家人信息），同人可自由发挥而不冲突
+- 他临终自白"我只是想成为九元老之一，只是皇帝……"——他的初心从没变过，同人可深挖这份"执念的悲剧性"
+- 他可能斩杀一千余无辜牧民夸大军功（触及元老底线的把柄）——可深挖的心理暗面
+- "闻人首辅"疑点（或为"周首辅"笔误）——暗示闻人氏在元老会有根基，同人可用开放性设定
+- 他掌握千魔窟/炼狱山"魔神之链"炼法、李苦舍利剑与"封魔"秘术；身体有蓝杏之毒沉疴（伤后脸上隐现蓝色杏花般的蓝）
+
+---
+
+*本专档由全书 16 卷精读整理（2026-08-16）。配套：人物志 / 事件编年 / 世界观设定 / 关键词检索表 / 16卷分卷笔记。*
+</div></details>
+
+</div>
+<script>
+function toggleLib() {
+  var p = document.getElementById('libPanel');
+  var open = p.style.right === '0px' || p.style.right === '0';
+  p.style.right = open ? '-420px' : '0px';
+}
+</script>
+
+</body>
+</html>
