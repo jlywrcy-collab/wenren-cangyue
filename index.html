@@ -252,6 +252,7 @@ body {
         <button style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="checkOOC()">🧹 人设检查</button>
       </div>
       <div id="presetBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;"></div>
+      <div id="charBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;"></div>
       <div id="inputRow">
         <textarea id="prompt" placeholder="输入你的话 / 剧情走向 / 要续写的片段……" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
         <button id="sendBtn" onclick="onSendClick()">发送</button>
@@ -387,6 +388,18 @@ const LORE = [
   },
 ];
 
+/* ---------- 人物卡速查：核心人物设定（点击激活注入） ---------- */
+const CHARACTER_CARDS = [
+  { name: '闻人苍月', content: `【闻人苍月】云秦镇西大将军，总镇碧落边军，嫌"月"字女气自改名"苍岳"。约三十岁，眉浓如墨、唇红如锦、铁铸般魁梧，常穿青布衣。圣师阶无敌的御剑圣师（赤霞飞剑、近身剑道、血色长幡、穿山弩飞天术、秃鹫遁术）。枭雄狠辣、睥睨天下、知人善用、极重情义（唯一挚友鬼军师）；"圣"字自居，漠视普通人但尊重强者。名言："不和这天下为敌，像我这样的人，生在这世上还有什么意义？"毕生执念是进入"重重帷幕之后"（元老会）。感情世界在原著中几乎完全留白。` },
+  { name: '南宫未央', content: `【南宫未央】御剑圣师、面嫩少女（22岁），闻人苍月一生的宿敌/镜像。五阶段：①深巷救南山暮、杀他部下；②杀他西夷内应与天狼卫；③飞剑斩断魔神之链，被他绝杀洞穿几乎丧命；④终战以伤换力死磕七曜魔剑数百击，逼他膝盖碎裂；⑤他临终悔恨"低估了她的实力"。她最终悟得他的近身剑意——"在一次次失败中偷走了他的剑"。可作女配/对照角色或女主灵感。` },
+  { name: '鬼军师', content: `【鬼军师·刘玉翔】闻人苍月唯一真正的朋友、第一智囊，实为西夷罗神部落修行者（罗神幡克制飞剑）。他知闻人苍月最深处的孤独与执念，是其枭雄路上唯一能交心之人。"士为知己者死"在他身上具象化。` },
+  { name: '皇帝', content: `【云秦皇帝】闻人苍月效忠又博弈的对象。朝堂之上，皇帝、九老（元老会"重重帷幕之后"）、青鸾学院三方角力；闻人苍月在边镇经营实力，皇帝既倚重又忌惮。同人可写"君臣之间"的张力。` },
+  { name: '长公主', content: `【长公主·长孙慕月】皇帝亲妹、大国师；如东陵遇刺"就是接下来一切事情的开端"；暗中助青鸾学院；养大南宫未央、举荐林夕入学。与闻人苍月无直接互动，但因果暗线可深挖。` },
+  { name: '青鸾学院', content: `【青鸾学院】历史最悠久、张院长创办，位于登天山脉；六系：止戈、文治、御药、天工、灵祭、内相；学生毕业即相当于镇督级别。理念："对生命起码的尊重和怜悯"。闻人苍月是青鸾学院出身（校友）。` },
+  { name: '林夕', content: `【林夕】青鸾学院学生，与南宫未央同代的天才（长公主举荐入学）；与西夷、大莽湛台浅唐有结盟线；是"新生代"与大莽变局的枢纽人物。` },
+  { name: '西夷·大莽', content: `【西夷与大莽】西夷六十年前被张院长打垮，沦为沙漠流寇（"秋蝗"），被闻人苍月"养狗"般畜养并秘密合作——这是他政治上的致命把柄。大莽：老皇帝湛台莽传位义子湛台浅唐（与林夕结盟）；闻人苍月最终为大莽兵马大元帅。` },
+];
+
 /* ---------- 状态 ---------- */
 let sessions = {};      // id -> {title, mode, messages:[{role,content}], draft:""}
 let currentId = null;
@@ -448,6 +461,7 @@ function init() {
   else { currentId = Object.keys(sessions)[0]; renderSessionList(); renderChat(); }
   renderDraftBar();
   renderPresetBar();
+  renderCharBar();
   renderCardTag();
   // 点击其他区域关闭导出菜单
   document.addEventListener('click', (e) => {
@@ -663,7 +677,8 @@ function branchAt(idx) {
     mode: old.mode || 'rp',
     messages: base,
     draft: old.draft || '',
-    presets: old.presets ? JSON.parse(JSON.stringify(old.presets)) : {}
+    presets: old.presets ? JSON.parse(JSON.stringify(old.presets)) : {},
+    chars: old.chars ? JSON.parse(JSON.stringify(old.chars)) : {}
   };
   currentId = id;
   draftContent = sessions[id].draft || '';
@@ -821,6 +836,29 @@ function renderPresetBar() {
     bar.appendChild(b);
   });
   renderPackTag();
+}
+// 人物卡速查：激活的人物设定注入 AI 上下文（不进对话历史）
+function sessChars() { return sessions[currentId]?.chars || {}; }
+function setSessChar(name, on) {
+  if (!currentId) newSession();
+  if (!sessions[currentId].chars) sessions[currentId].chars = {};
+  sessions[currentId].chars[name] = on;
+  saveAll(); renderCharBar();
+  toast(on ? '📖 已注入「' + name + '」设定' : '已移除「' + name + '」');
+}
+function renderCharBar() {
+  const bar = document.getElementById('charBar');
+  if (!bar) return;
+  bar.innerHTML = '';
+  CHARACTER_CARDS.forEach(c => {
+    const on = sessChars()[c.name] === true;
+    const b = document.createElement('button');
+    b.textContent = (on ? '📖 ' : '') + c.name;
+    b.title = '点击注入/移除「' + c.name + '」设定';
+    b.style.cssText = `padding:3px 10px;border-radius:16px;border:1px solid ${on ? 'var(--gold)' : 'var(--line)'};background:${on ? 'rgba(217,180,91,0.15)' : 'var(--bg2)'};color:${on ? 'var(--gold)' : 'var(--dim)'};font-size:12px;cursor:pointer;`;
+    b.onclick = () => setSessChar(c.name, !on);
+    bar.appendChild(b);
+  });
 }
 function renderPackTag() {
   const tag = document.getElementById('packTag');
@@ -1133,6 +1171,11 @@ function buildSystem(mode) {
   }
   // 角色设定
   sys += `\n\n【梦女/女主设定】${persona}`;
+  // 人物卡速查：会话中激活的人物设定注入
+  const onChars = CHARACTER_CARDS.filter(c => sessChars()[c.name] === true);
+  if (onChars.length) {
+    sys += '\n\n【已注入的人物设定】\n' + onChars.map(c => c.content).join('\n---\n');
+  }
   if (mode === 'rp') {
     sys += `\n\n【当前模式：梦女互动】你扮演闻人苍月本人，用他的口吻与用户（梦女女主，名字见设定）对话。保持他的人设：冷漠、强势、睥睨、惜字如金但字字千钧；对女主从审视到微微在意，克制地流露感情。`;
   } else if (mode === 'write') {
