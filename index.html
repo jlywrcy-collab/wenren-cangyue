@@ -87,6 +87,12 @@ body {
   .msg { max-width: 92%; }
   .m-collapse { display: none; }
   .m-collapse.open { display: flex; }
+  /* 手机端：底部分栏图标条显示，各面板默认折叠 */
+  #iconBar { display: flex; gap: 2px; margin-bottom: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #iconBar .ic-btn { flex: none; }
+  #modeBar, #moreTools, #presetBar, #charBar, #extraRow, #uploadBar { display: none !important; }
+  #modeBar.ic-open, #moreTools.ic-open, #presetBar.ic-open, #charBar.ic-open, #extraRow.ic-open, #uploadBar.ic-open { display: flex !important; }
+  #uploadBar { margin-bottom: 4px; }
   /* 手机端：上传栏隐藏（进更多菜单），底稿条压缩 */
   #uploadBar { display: none !important; }
   #draftBar { margin-bottom: 4px; font-size: 11px; }
@@ -115,10 +121,19 @@ body.compact #inputArea { padding: 6px 8px; }
 body.compact #chatBox { padding: 10px; }
 body.compact .msg { max-width: 92%; }
 body.compact #uploadBar { display: none !important; }
+/* 紧凑模式：底部分栏图标条 + 面板折叠 */
+body.compact #iconBar { display: flex; gap: 2px; margin-bottom: 4px; overflow-x: auto; }
+body.compact #modeBar, body.compact #moreTools, body.compact #presetBar, body.compact #charBar, body.compact #extraRow, body.compact #uploadBar { display: none !important; }
+body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #presetBar.ic-open, body.compact #charBar.ic-open, body.compact #extraRow.ic-open, body.compact #uploadBar.ic-open { display: flex !important; }
 /* ---------- 主区 ---------- */
 #main { flex: 1; display: flex; min-height: 0; }
 /* 折叠头（提示词/人物卡）：桌面完整模式隐藏，手机/紧凑模式显示 */
 .fold-head { display: none; }
+/* 手机端底部分栏图标条 */
+#iconBar { display: none; }
+.ic-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; background: none; border: none; color: var(--dim); cursor: pointer; padding: 2px 6px; font-size: 16px; border-radius: 6px; }
+.ic-btn span { font-size: 9px; line-height: 1; }
+.ic-btn.active { color: var(--accent); background: var(--accent-soft); }
 /* 侧栏 */
 #sidebar {
   width: 230px; background: var(--bg2); border-right: 1px solid var(--line);
@@ -301,6 +316,15 @@ body.compact #uploadBar { display: none !important; }
     <div id="inputArea">
       <div id="draftBar"></div>
       <div id="ctxBarWrap"><div id="ctxBar"><div class="fill"></div></div><div id="ctxBarText"></div></div>
+      <!-- 手机端底部分栏图标条 -->
+      <div id="iconBar">
+        <button class="ic-btn" data-panel="modeBar" onclick="toggleIconPanel('modeBar', this)">🎭<span>模式</span></button>
+        <button class="ic-btn" data-panel="presetBar" onclick="toggleIconPanel('presetBar', this)">🎛<span>提示词</span></button>
+        <button class="ic-btn" data-panel="charBar" onclick="toggleIconPanel('charBar', this)">📖<span>人物卡</span></button>
+        <button class="ic-btn" data-panel="moreTools" onclick="toggleIconPanel('moreTools', this)">📦<span>更多</span></button>
+        <button class="ic-btn" data-panel="extraRow" onclick="toggleIconPanel('extraRow', this)">📝<span>要求</span></button>
+        <button class="ic-btn" data-panel="uploadBar" onclick="toggleIconPanel('uploadBar', this)">📄<span>文稿</span></button>
+      </div>
       <div id="modeBar">
         <button class="mode-btn" data-mode="rp" onclick="setMode('rp')">🎭 梦女互动</button>
         <button class="mode-btn" data-mode="write" onclick="setMode('write')">✍️ 小说续写</button>
@@ -1128,6 +1152,21 @@ function toggleMoreTools() {
   t.classList.toggle('open');
   const btn = t.previousElementSibling && t.previousElementSibling.classList.contains('m-more-btn') ? t.previousElementSibling : document.querySelector('.m-more-btn');
   if (btn) btn.textContent = t.classList.contains('open') ? '⚙ 收起' : '⚙ 更多';
+}
+// 底部分栏图标条：点击图标展开/收起对应面板（互斥）
+function toggleIconPanel(id, btn) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  const isOpen = panel.classList.contains('ic-open');
+  // 收起所有
+  document.querySelectorAll('#modeBar,#moreTools,#presetBar,#charBar,#extraRow,#uploadBar').forEach(p => p.classList.remove('ic-open'));
+  document.querySelectorAll('.ic-btn').forEach(b => b.classList.remove('active'));
+  if (!isOpen) {
+    panel.classList.add('ic-open');
+    if (btn) btn.classList.add('active');
+    // 额外要求聚焦
+    if (id === 'extraRow') setTimeout(function(){ document.getElementById('extraPrompt').focus(); }, 50);
+  }
 }
 // 移动端：展开/收起「额外要求」输入行
 function toggleExtraRow() {
