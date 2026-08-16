@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>闻人苍月 · 梦女同人写作台</title>
+<style>
+:root {
+  --bg: #0d1524; --bg2: #131e33; --bg3: #1a2a45;
+  --line: #2a3d5f; --txt: #dbe6f5; --dim: #8fa5c5;
+  --accent: #4d8fd4; --accent2: #c3272b; --gold: #d9b45b;
+  --ok: #5cb877; --warn: #e3c070;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html,body { height: 100%; }
+body {
+  font-family: "PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  background: var(--bg); color: var(--txt); font-size: 15px; line-height: 1.7;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+/* ---------- 顶栏 ---------- */
+#topbar {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: var(--bg2); border-bottom: 1px solid var(--line); flex: none;
+  flex-wrap: wrap;
+}
+#topbar .logo { font-weight: 700; color: var(--accent); white-space: nowrap; }
+#topbar .logo small { color: var(--dim); font-weight: 400; margin-left: 6px; }
+#topbar button, #topbar select, #topbar input {
+  background: var(--bg3); color: var(--txt); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+}
+#topbar button:hover { border-color: var(--accent); }
+#topbar select { max-width: 150px; }
+#apiKey { width: 200px; }
+/* ---------- 主区 ---------- */
+#main { flex: 1; display: flex; min-height: 0; }
+/* 侧栏 */
+#sidebar {
+  width: 230px; background: var(--bg2); border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; flex: none; overflow: hidden;
+}
+#sidebar h3 {
+  font-size: 12px; color: var(--dim); padding: 10px 12px 6px; letter-spacing: 1px;
+}
+#sessionList { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+.sess {
+  padding: 8px 10px; border-radius: 8px; cursor: pointer; margin-bottom: 4px;
+  font-size: 13px; color: var(--dim); display: flex; justify-content: space-between; align-items: center;
+}
+.sess:hover { background: var(--bg3); color: var(--txt); }
+.sess.active { background: var(--bg3); color: var(--txt); border-left: 3px solid var(--accent); }
+.sess .del { opacity: 0; color: var(--warn); padding: 0 4px; }
+.sess:hover .del { opacity: 1; }
+#sidebar .btn-row { padding: 8px; display: flex; gap: 6px; }
+#sidebar .btn-row button { flex: 1; }
+/* 聊天区 */
+#chatArea { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#chatBox { flex: 1; overflow-y: auto; padding: 16px; }
+.msg { max-width: 85%; margin-bottom: 14px; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; word-break: break-word; }
+.msg.user { background: var(--accent); color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+.msg.assistant { background: var(--bg3); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.system { background: transparent; color: var(--dim); font-size: 12px; text-align: center; max-width: 100%; }
+.msg .name { font-weight: 700; margin-bottom: 4px; color: var(--gold); font-size: 13px; }
+.msg.user .name { color: #fff; }
+.msg .status { color: var(--dim); font-size: 12px; }
+/* 输入区 */
+#inputArea { flex: none; border-top: 1px solid var(--line); background: var(--bg2); padding: 10px 12px; }
+#draftBar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
+#draftBar .file-chip { background: var(--bg3); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; display: inline-flex; align-items: center; gap: 6px; }
+#draftBar .file-chip button { background: none; border: none; color: var(--warn); cursor: pointer; font-size: 14px; }
+#modeBar { display: flex; gap: 6px; margin-bottom: 8px; }
+.mode-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--bg3); color: var(--dim); cursor: pointer; font-size: 13px; }
+.mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+#inputRow { display: flex; gap: 8px; align-items: flex-end; }
+#prompt {
+  flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--txt);
+  border-radius: 12px; padding: 10px 12px; resize: none; min-height: 48px; max-height: 160px; font-size: 15px; line-height: 1.6; font-family: inherit;
+}
+#prompt:focus { outline: none; border-color: var(--accent); }
+#sendBtn {
+  background: var(--accent); color: #fff; border: none; border-radius: 12px;
+  padding: 10px 18px; font-size: 15px; cursor: pointer; flex: none;
+}
+#sendBtn:disabled { opacity: .5; cursor: not-allowed; }
+/* 上传区 */
+#uploadBar { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--dim); flex-wrap: wrap; }
+#uploadBar label { cursor: pointer; color: var(--accent); }
+#uploadBar label:hover { text-decoration: underline; }
+#contextNote { color: var(--dim); font-size: 11px; }
+/* 弹出层 */
+#overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+  align-items: center; justify-content: center; z-index: 100;
+}
+#overlay.show { display: flex; }
+#settings {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 20px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+}
+#settings h2 { color: var(--accent); margin-bottom: 12px; font-size: 17px; }
+#settings label { display: block; font-size: 13px; color: var(--dim); margin: 10px 0 4px; }
+#settings input, #settings select, #settings textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--txt);
+  border-radius: 8px; padding: 8px 10px; font-size: 14px; font-family: inherit;
+}
+#settings textarea { min-height: 120px; resize: vertical; }
+#settings .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+#settings .btn-row button { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg3); color: var(--txt); cursor: pointer; }
+#settings .btn-row button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--bg3); border: 1px solid var(--line); color: var(--txt);
+  padding: 8px 18px; border-radius: 20px; font-size: 13px; display: none; z-index: 200;
+}
+@media (max-width: 700px) {
+  #sidebar { position: fixed; left: -240px; top: 0; bottom: 0; z-index: 50; transition: left .25s; width: 240px; }
+  #sidebar.open { left: 0; }
+  #main { position: relative; }
+  .msg { max-width: 92%; }
+}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div id="topbar">
+  <button id="menuBtn" onclick="toggleSidebar()">☰</button>
+  <div class="logo">闻人苍月<small>梦女同人写作台</small></div>
+  <div style="flex:1"></div>
+  <button onclick="newSession()">＋ 新对话</button>
+  <button onclick="openSettings()">⚙ 设置</button>
+  <input id="apiKey" type="password" placeholder="DeepSeek API Key (sk-...)" onchange="saveKey()">
+</div>
+
+<!-- 主区 -->
+<div id="main">
+  <div id="sidebar">
+    <h3>💬 会话窗口</h3>
+    <div id="sessionList"></div>
+    <div class="btn-row">
+      <button onclick="newSession()">新建</button>
+      <button onclick="toggleSidebar()">收起</button>
+    </div>
+  </div>
+
+  <div id="chatArea">
+    <div id="chatBox"></div>
+    <div id="inputArea">
+      <div id="draftBar"></div>
+      <div id="modeBar">
+        <button class="mode-btn" data-mode="rp" onclick="setMode('rp')">🎭 梦女互动</button>
+        <button class="mode-btn" data-mode="write" onclick="setMode('write')">✍️ 小说续写</button>
+        <button class="mode-btn" data-mode="polish" onclick="setMode('polish')">✨ 润色</button>
+      </div>
+      <div id="inputRow">
+        <textarea id="prompt" placeholder="输入你的话 / 剧情走向 / 要续写的片段……" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
+        <button id="sendBtn" onclick="send()">发送</button>
+      </div>
+      <div id="uploadBar">
+        <label for="fileInput">📄 上传你的文稿（.txt）</label>
+        <input type="file" id="fileInput" accept=".txt,.md" style="display:none" onchange="handleFile(this)">
+        <span id="contextNote"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置弹层 -->
+<div id="overlay" onclick="if(event.target===this)closeSettings()">
+  <div id="settings">
+    <h2>⚙ 设置</h2>
+    <label>DeepSeek API Key</label>
+    <input id="setKey" type="password" placeholder="sk-...">
+    <label>模型</label>
+    <select id="setModel">
+      <option value="deepseek-chat">deepseek-chat（推荐，写文便宜）</option>
+      <option value="deepseek-reasoner">deepseek-reasoner（深度思考）</option>
+    </select>
+    <label>创造温度（0.7=平衡，1.2=放飞）</label>
+    <input id="setTemp" type="number" min="0" max="2" step="0.1" value="1.0">
+    <label>单次回复最大字数</label>
+    <input id="setMax" type="number" min="200" max="4000" value="1200">
+    <label>梦女/作者人设（你是谁，怎么称呼）</label>
+    <textarea id="setPersona" placeholder="例：我是（你的名字），一个意外来到碧落陵的现代女子……">我是（你的名字），一个意外闯入碧落陵所在世界的现代女子。性格由你设定（例：温柔坚韧 / 俏皮聪慧 / 清冷寡言），有自己的来历与心事。与闻人苍月的相处里，我不卑不亢，能接住他的冷漠与锋芒。</textarea>
+    <div class="btn-row">
+      <button class="primary" onclick="saveSettings()">保存</button>
+      <button onclick="closeSettings()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================================================================
+ * 闻人苍月 · 梦女同人写作台
+ * 纯前端单文件：无需服务器，手机/电脑浏览器打开即用。
+ * 功能：内置仙魔变知识库（关键词自动注入）、多会话、文稿上传续写、
+ *       三种模式（梦女互动/小说续写/润色）、接入 DeepSeek API。
+ * ================================================================== */
+
+/* ---------- 知识库：闻人苍月 & 仙魔变 核心设定 ---------- */
+const LORE = [
+  {
+    keys: ["闻人苍月","苍岳","闻人大将军","苍月"],
+    content: `【闻人苍月人物档案】云秦镇西大将军，总镇碧落边军。嫌"月"字女气自改名"闻人苍岳"，旧识仍称苍月。约三十岁，外貌：眉浓如墨、唇红如锦、铁铸般魁梧身躯，常穿普通青布衣。实力：圣师阶无敌的御剑圣师（赤霞飞剑、近身剑道越近越强、血色长幡克制飞剑、穿山弩飞天术、秃鹫遁术、李苦舍利剑与千魔窟封魔秘术）。性格：枭雄、狠辣、睥睥天下、知人善用、极重情义（唯一挚友鬼军师）；"圣"字自居、漠视普通人但尊重强者（女主需以强者身份登场方能入他眼）。名言："不和这天下为敌，像我这样的人，生在这世上还有什么意义？""阴谋和武力一样重要""我只是想成为九元老之一，只是皇帝……"。毕生执念是进入"重重帷幕之后"（元老会）——这是理解他一切行为的悲剧内核。感情世界在原著中几乎完全留白——没有婚配、没有家人，这是他罕见的软肋与空白。`
+  },
+  {
+    keys: ["碧落陵","镇西大将军","边军","天狼卫","鬼军师","中军大帐"],
+    content: `【碧落陵设定】云秦最西陲，闻人苍月总镇两千余里防线、七万边军。镜天湖畔中军大帐，旗杆挂紫黑"闻人"血旗。他治军赏罚分明、事必躬亲，部下对他绝对忠诚（"士为知己者死"）；天狼卫是他亲自挑选训练的修行者死士（白铜面具、背双长刀）。鬼军师刘玉翔是第一智囊、他唯一真正的朋友（实为西夷罗神部落修行者）。闻人苍月在此与皇帝、九老、青鸾学院、大莽多方博弈。`
+  },
+  {
+    keys: ["南宫未央","宿敌","近身剑意","魔神之链"],
+    content: `【南宫未央与闻人苍月】御剑圣师、面嫩少女（22岁），与闻人苍月是"一生的宿敌/镜像"。五阶段关系：①她深巷救南山暮、杀他部下，他误认她是周首辅的人；②她杀他西夷内应、天狼卫，他从未正眼留意她；③她飞剑斩断他的魔神之链，被他绝杀洞穿几乎丧命（"她不喜欢闻人苍月，非常不喜欢……但他是这世间最强大的御剑圣师之一"）；④终战她以伤换力死磕七曜魔剑数百击，逼他膝盖碎裂；⑤他临终悔恨"低估了她的实力""后悔没有早些杀死这名面嫩圣师"。她最终悟得他的近身剑意——"她一生与他作对，却在一次次失败中偷走了他的剑"。可作女配/对照角色，也可作女主灵感来源。`
+  },
+  {
+    keys: ["魂力","圣师","御剑","飞剑","修行","境界"],
+    content: `【修行体系】魂力即意念力。境界：魂士→魂师→大魂师→国士→大国师→圣师→大圣师。圣师可御飞剑（弱者百步、强者千步杀伐），御剑圣师为顶尖；闻人苍月"圣师阶无敌"。剑道：近身剑道（离身体越近越强，五步之内天下能接其一击者唯有数人）。时间单位：一息=1秒，一停=1分钟，十停=10分钟。`
+  },
+  {
+    keys: ["云秦","皇帝","九老","元老会","一帝九老八公","长孙锦瑟"],
+    content: `【云秦政治】一帝九老八公：皇帝长孙锦瑟 + 九名元老（坐重重帷幕之后）+ 八司（正武、内务、刑、吏、工、律政、礼、户）。九老：闻人家、江家、容家、宇化家、胡家、黄家、陈家、钟家、孔家。闻人苍月为闻人老首辅远亲（族中推上位但早已失控）。他毕生执念是进元老会，被否决后走上反叛之路。`
+  },
+  {
+    keys: ["将军行","琵琶","歌姬","深巷"],
+    content: `【将军行】闻人苍月出征前会让歌姬弹奏《将军行》——充满金铁杀伐气息的琵琶曲，是他出击的号令。金车中"衣着十分华贵的美丽歌姬，捧玉石琵琶"；深巷中也曾有人弹《将军行》（弹奏者身份不明，可作原创女角钩子）。这是与他相关的经典意象。`
+  },
+  {
+    keys: ["大莽","兵马大元帅","七军","李苦","炼狱山","夺月城","千叶关"],
+    content: `【大莽时期】闻人苍月叛入大莽后为大莽七军最高统帅/兵马大元帅。夺月城焚城（魔火片烧死云秦十余万）、千叶关诈袭连破三关八天侵入云秦。与炼狱山掌教联手杀大莽无敌国师李苦（得李苦舍利剑、悟李苦剑意）。此时期他"由盛而衰"：与周首辅世纪之战被重创，"再一百年不可能进阶大圣师"，但仍执念"圣师便一定杀不死大圣师？"。`
+  },
+  {
+    keys: ["结局","斩首","如东陵","死亡","负云秦者","临终"],
+    content: `【闻人苍月的结局（原著）】死于第十五卷「将神」：被林夕一行击败生擒（南宫未央以伤换力死磕七曜魔剑数百击，边凌涵一箭逼落），手脚尽废、全身瘫痪；临死崩溃求活被拒（"我只是想成为九元老之一，只是皇帝……""我可以帮你对付皇帝……我可以做你的军师"→林夕"你不死……我不会安心"）；押回云秦如东陵当众斩首："负云秦者，当如此贼！"。若写梦女文可考虑：HE 架空（改变命运）、BE 虐恋（他临终的悔恨）、或原著向（她成为他身边唯一的温暖）。`
+  },
+  {
+    keys: ["林夕","主角","将神","张院长"],
+    content: `【林夕与张院长】林夕：原著主角，穿越者，将神天赋（时间回溯），与闻人苍月是"宿命般双星/生死宿敌"。若梦女文设定他面前出现，注意不要OOC：林夕机智淡然、重情义。张院长：青鸾学院开山者、穿越者前辈，留下"大黑"长弓与学院理念。`
+  },
+  {
+    keys: ["时间线","前期","中期","后期","碧落陵称雄","大莽"],
+    content: `【可用时间线】①碧落陵称雄期（第4-9卷：他权倾天下、野心膨胀、与皇帝暗战）——适合"强势男主×初遇女主"；②大莽大元帅时期（第11-12卷：焚城、诈袭、养伤）——适合"孤狼男主×理解者女主"；③临终前后（第14-15卷：求饶、自白、悔恨）——适合虐恋/救赎向。`
+  },
+  {
+    keys: ["侍女","药汤","望霞关","养伤"],
+    content: `【侍女与养伤】第十二卷：闻人苍月在望霞关将塔泡祛伤汤十余天疗养（一生征战、沉疴隐伤），四名侍女"沉默添柴""见多了血腥场面"、为他擦洗身体换衣——身边唯一的女性存在，可作梦女文的切入视角或对照。`
+  },
+  {
+    keys: ["女潜隐","细致洞察力","聪明"],
+    content: `【他对聪明女子的态度】第十三卷：他处置差点毁掉夺月城之战的云秦女潜隐（青鸾女学生）——赞赏她"细致洞察力便是我昔日碧落陵全军都无人能及"、容忍她"这真是个愚蠢的问题"的顶撞、敬重致谢，但兵不厌诈照杀不误（灭口）。可见他对真正有才能的女性既欣赏又绝不因私废公。`
+  },
+  {
+    keys: ["长公主","长孙慕月","如东陵"],
+    content: `【长公主长孙慕月】皇帝亲妹、大国师；如东陵遇刺"就是接下来一切事情的开端"（被朝臣疑为闻人苍月手段）；暗中助青鸾学院；养大南宫未央、举荐林夕入学。与闻人苍月无直接互动，但因果暗线可深挖。`
+  },
+  {
+    keys: ["青鸾学院","六系","张院长","学院"],
+    content: `【青鸾学院】历史最悠久、张院长创办，位于登天山脉；六系：止戈、文治、御药、天工、灵祭、内相；学生毕业即相当于镇督级别。理念："对生命起码的尊重和怜悯""生死之间有大恐怖"。闻人苍月本身是青鸾学院出身（校友）。`
+  },
+  {
+    keys: ["西夷","鬼军师","罗神幡","秋蝗","流寇"],
+    content: `【西夷】六十年前被张院长打垮、沦为沙漠流寇（"秋收/秋蝗"）；被闻人苍月"养狗"般畜养并秘密合作（官军与流寇勾结）；鬼军师实为西夷罗神部落修行者（罗神幡克制飞剑）。这是他政治上的致命把柄之一。`
+  },
+  {
+    keys: ["唐藏","般若寺","大莽","湛台浅唐","凤轩"],
+    content: `【邻国】唐藏：凤轩皇帝、般若寺（真毗卢曾以一人之力迫退闻人苍月）。大莽：老皇帝湛台莽传位义子湛台浅唐（与林夕结盟）；炼狱山、千魔窟。闻人苍月最终为大莽兵马大元帅。`
+  },
+];
+
+/* ---------- 状态 ---------- */
+let sessions = {};      // id -> {title, mode, messages:[{role,content}], draft:""}
+let currentId = null;
+let currentMode = 'rp';
+let apiKey = localStorage.getItem('hm_apiKey') || '';
+let model = localStorage.getItem('hm_model') || 'deepseek-chat';
+let temp = parseFloat(localStorage.getItem('hm_temp') || '1.0');
+let maxTokens = parseInt(localStorage.getItem('hm_max') || '1200');
+let persona = localStorage.getItem('hm_persona') || '我是（你的名字），一个意外闯入碧落陵所在世界的现代女子。性格由你设定，有自己的来历与心事。与闻人苍月的相处里，我不卑不亢，能接住他的冷漠与锋芒。';
+let draftContent = '';  // 当前会话的底稿（上传的文稿）
+
+const SYSTEM_SEED = `你是一位擅长撰写「闻人苍月」梦女同人小说的写手，同时也是一位出色的角色扮演者。
+故事背景：云秦帝国，碧落陵。闻人苍月——镇西大将军，圣师阶无敌的御剑圣师，枭雄，睥睨天下，但感情世界一片空白。
+写作要求：
+1. 文笔优美，古风但不晦涩，注重氛围与心理描写。
+2. 严格保持闻人苍月人设：冷漠、强势、睥睨、但会尊重真正的强者；说话简短有力，不话痨。
+3. 描写要有电影感：景物、动作、神态、氛围。避免干巴巴的对话流水账。
+4. 感情线要自然推进，不突兀；闻人苍月的"动心"应该是细微的、克制的、被他自己压抑的。
+5. 你是写手/扮演者，不要跳出角色评论写作过程（除非用户要求）。
+【知识库注入规则】下方【设定】部分的内容会在相关话题出现时注入，写作时严格遵守，不要与原著设定冲突。`;
+
+/* ---------- 初始化 ---------- */
+function init() {
+  document.getElementById('apiKey').value = apiKey;
+  // 载入会话
+  try { sessions = JSON.parse(localStorage.getItem('hm_sessions') || '{}'); } catch(e){ sessions = {}; }
+  if (!Object.keys(sessions).length) newSession();
+  else { currentId = Object.keys(sessions)[0]; renderSessionList(); renderChat(); }
+  renderDraftBar();
+  toast('欢迎回来。愿你与闻人大将军有一段好故事。');
+}
+
+function saveAll() {
+  localStorage.setItem('hm_sessions', JSON.stringify(sessions));
+  localStorage.setItem('hm_apiKey', apiKey);
+  localStorage.setItem('hm_model', model);
+  localStorage.setItem('hm_temp', temp);
+  localStorage.setItem('hm_max', maxTokens);
+  localStorage.setItem('hm_persona', persona);
+}
+
+function newSession() {
+  const id = 's' + Date.now();
+  sessions[id] = { title: '新对话', mode: 'rp', messages: [], draft: '' };
+  currentId = id; draftContent = '';
+  saveAll(); renderSessionList(); renderChat(); renderDraftBar();
+  if (window.innerWidth <= 700) toggleSidebar(true);
+}
+
+function delSession(id) {
+  if (!confirm('删除这个会话？')) return;
+  delete sessions[id];
+  if (currentId === id) { currentId = Object.keys(sessions)[0] || null; if (currentId) newSession(); }
+  saveAll(); renderSessionList(); renderChat();
+}
+
+function switchSession(id) {
+  currentId = id; draftContent = sessions[id].draft || '';
+  renderSessionList(); renderChat(); renderDraftBar();
+  if (window.innerWidth <= 700) toggleSidebar(true);
+}
+
+function toggleSidebar(force) {
+  const s = document.getElementById('sidebar');
+  const open = force !== undefined ? force : !s.classList.contains('open');
+  s.classList.toggle('open', open);
+}
+
+/* ---------- 渲染 ---------- */
+function renderSessionList() {
+  const box = document.getElementById('sessionList');
+  box.innerHTML = '';
+  Object.keys(sessions).forEach(id => {
+    const s = sessions[id];
+    const div = document.createElement('div');
+    div.className = 'sess' + (id === currentId ? ' active' : '');
+    div.innerHTML = `<span onclick="switchSession('${id}')">${escapeHtml(s.title)}</span><span class="del" onclick="delSession('${id}')">×</span>`;
+    box.appendChild(div);
+  });
+}
+
+function renderChat() {
+  const box = document.getElementById('chatBox');
+  box.innerHTML = '';
+  if (!currentId) return;
+  const msgs = sessions[currentId].messages || [];
+  if (!msgs.length) {
+    box.innerHTML = `<div class="msg system">这里是「闻人苍月」梦女同人写作台。<br>🎭 梦女互动：你就是女主，直接与他对话<br>✍️ 小说续写：上传你的文稿，让我接着写<br>✨ 润色：让我润色你的片段<br><br>例：「我在碧落陵的城门口，远远看见那面紫黑的闻人血旗」</div>`;
+  }
+  msgs.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'msg ' + m.role;
+    if (m.role === 'user') div.innerHTML = `<div class="name">你</div>${escapeHtml(m.content)}`;
+    else if (m.role === 'assistant') div.innerHTML = `<div class="name">${escapeHtml(assistantName())}</div>${escapeHtml(m.content)}`;
+    else div.textContent = m.content;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function assistantName() {
+  return sessions[currentId] && sessions[currentId].mode === 'write' ? '✍️ 写手' : '闻人苍月';
+}
+
+function renderDraftBar() {
+  const bar = document.getElementById('draftBar');
+  const note = document.getElementById('contextNote');
+  if (draftContent) {
+    const len = draftContent.length;
+    bar.innerHTML = `<span class="file-chip">📄 已上传底稿（${len}字）<button onclick="clearDraft()">×</button></span>`;
+    note.textContent = `续写时会参考底稿末尾内容`;
+  } else {
+    bar.innerHTML = '';
+    note.textContent = '';
+  }
+}
+
+function clearDraft() {
+  draftContent = '';
+  if (currentId) { sessions[currentId].draft = ''; saveAll(); }
+  renderDraftBar();
+  toast('已清除底稿');
+}
+
+/* ---------- 模式 ---------- */
+function setMode(m) {
+  currentMode = m;
+  if (currentId) { sessions[currentId].mode = m; saveAll(); }
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderChat();
+  toast(modeHint(m));
+}
+function modeHint(m) {
+  if (m === 'rp') return '🎭 梦女互动：你就是女主，和闻人苍月对话';
+  if (m === 'write') return '✍️ 小说续写：AI 接着你上传的文稿写';
+  return '✨ 润色：AI 润色你的片段';
+}
+
+/* ---------- 文件上传 ---------- */
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    let text = e.target.result;
+    // 去除可能的BOM
+    text = text.replace(/^\uFEFF/, '');
+    draftContent = text;
+    if (currentId) { sessions[currentId].draft = text; saveAll(); }
+    renderDraftBar();
+    toast(`已上传「${file.name}」(${text.length}字)`);
+  };
+  reader.readAsText(file, 'utf-8');
+  input.value = '';
+}
+
+/* ---------- 发送 ---------- */
+async function send() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) return;
+  if (!apiKey) {
+    toast('请先在右上角/设置里填 DeepSeek API Key');
+    openSettings();
+    return;
+  }
+  const mode = currentMode;
+  const box = document.getElementById('chatBox');
+  const sendBtn = document.getElementById('sendBtn');
+  const ta = document.getElementById('prompt');
+
+  // 追加用户消息
+  pushMsg('user', prompt);
+  ta.value = '';
+  renderChat();
+
+  // 组装消息
+  const messages = buildMessages(mode, prompt);
+  const system = buildSystem(mode);
+
+  // 添加"思考中"占位
+  const thinking = document.createElement('div');
+  thinking.className = 'msg assistant';
+  thinking.innerHTML = `<div class="name">${escapeHtml(assistantName())}</div><span class="status">思索中…</span>`;
+  box.appendChild(thinking);
+  box.scrollTop = box.scrollHeight;
+  sendBtn.disabled = true;
+
+  try {
+    const resp = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: model,
+        messages: [{ role: 'system', content: system }, ...messages],
+        temperature: temp,
+        max_tokens: maxTokens * 2,
+        stream: false
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error('API错误 ' + resp.status + ': ' + err.slice(0, 200));
+    }
+    const data = await resp.json();
+    const content = data.choices[0].message.content;
+    thinking.remove();
+    pushMsg('assistant', content);
+    renderChat();
+  } catch (e) {
+    thinking.remove();
+    toast('出错：' + e.message);
+    renderChat();
+  } finally {
+    sendBtn.disabled = false;
+    ta.focus();
+  }
+}
+
+function pushMsg(role, content) {
+  if (!currentId) newSession();
+  if (!sessions[currentId].messages) sessions[currentId].messages = [];
+  sessions[currentId].messages.push({ role, content });
+  if (sessions[currentId].title === '新对话') {
+    const t = content.slice(0, 12);
+    sessions[currentId].title = t + '…';
+  }
+  saveAll(); renderSessionList();
+}
+
+/* ---------- 消息与系统提示组装 ---------- */
+function buildSystem(mode) {
+  let sys = SYSTEM_SEED;
+  const hits = matchLore();
+  if (hits.length) {
+    sys += '\n\n【当前注入的设定】\n' + hits.join('\n---\n');
+  }
+  // 追加底稿（小说续写模式）
+  if (mode === 'write' && draftContent) {
+    const tail = draftContent.slice(-2500);
+    sys += `\n\n【用户已上传的文稿·末尾部分】\n${tail}\n\n【任务】请严格接续这段文稿继续写下去，保持文风、视角与人设一致。`;
+  }
+  // 角色设定
+  sys += `\n\n【梦女/女主设定】${persona}`;
+  if (mode === 'rp') {
+    sys += `\n\n【当前模式：梦女互动】你扮演闻人苍月本人，用他的口吻与用户（梦女女主，名字见设定）对话。保持他的人设：冷漠、强势、睥睨、惜字如金但字字千钧；对女主从审视到微微在意，克制地流露感情。`;
+  } else if (mode === 'write') {
+    sys += `\n\n【当前模式：小说续写】你是这部「闻人苍月 × 梦女女主」同人小说的写手，以第三人称或女主视角继续书写，注重氛围与心理。`;
+  } else {
+    sys += `\n\n【当前模式：润色】请润色用户提供的文本：保持原意与情节，提升文笔与表现力，不要大幅改写剧情。`;
+  }
+  return sys;
+}
+
+function buildMessages(mode, prompt) {
+  const msgs = sessions[currentId].messages || [];
+  // 最近的消息（控制上下文长度，最多保留约40条）
+  const recent = msgs.slice(-40);
+  return recent.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
+}
+
+function matchLore() {
+  // 用最近几条消息匹配知识库关键词
+  const msgs = sessions[currentId]?.messages || [];
+  const text = msgs.slice(-6).map(m => m.content).join(' ');
+  const hits = [];
+  for (const item of LORE) {
+    if (item.keys.some(k => text.includes(k))) hits.push(item.content);
+  }
+  return hits;
+}
+
+/* ---------- 设置 ---------- */
+function openSettings() {
+  document.getElementById('setKey').value = apiKey;
+  document.getElementById('setModel').value = model;
+  document.getElementById('setTemp').value = temp;
+  document.getElementById('setMax').value = maxTokens;
+  document.getElementById('setPersona').value = persona;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSettings() { document.getElementById('overlay').classList.remove('show'); }
+function saveSettings() {
+  apiKey = document.getElementById('setKey').value.trim();
+  model = document.getElementById('setModel').value;
+  temp = parseFloat(document.getElementById('setTemp').value) || 1.0;
+  maxTokens = parseInt(document.getElementById('setMax').value) || 1200;
+  persona = document.getElementById('setPersona').value.trim();
+  document.getElementById('apiKey').value = apiKey;
+  saveAll();
+  closeSettings();
+  toast('设置已保存');
+}
+function saveKey() {
+  apiKey = document.getElementById('apiKey').value.trim();
+  saveAll();
+}
+
+/* ---------- 工具 ---------- */
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+init();
+</script>
+</body>
+</html>
