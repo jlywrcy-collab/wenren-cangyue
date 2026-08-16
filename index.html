@@ -55,19 +55,53 @@ body {
 }
 /* ---------- 顶栏 ---------- */
 #topbar {
-  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 6px; padding: 6px 10px;
   background: var(--bg2); border-bottom: 1px solid var(--line); flex: none;
   flex-wrap: wrap;
 }
-#topbar .logo { font-weight: 700; color: var(--accent); white-space: nowrap; }
-#topbar .logo small { color: var(--dim); font-weight: 400; margin-left: 6px; }
+#topbar .logo { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: 14px; }
+#topbar .logo small { color: var(--dim); font-weight: 400; margin-left: 4px; font-size: 11px; }
 #topbar button, #topbar select, #topbar input {
   background: var(--bg3); color: var(--txt); border: 1px solid var(--line);
-  border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+  border-radius: 8px; padding: 5px 9px; font-size: 12px; cursor: pointer;
 }
 #topbar button:hover { border-color: var(--accent); }
-#topbar select { max-width: 150px; }
-#apiKey { width: 200px; }
+#topbar select { max-width: 130px; }
+#apiKey { width: 180px; }
+/* 移动端：精简顶栏 + 输入区 */
+@media (max-width: 760px) {
+  #topbar { flex-wrap: nowrap; overflow-x: auto; gap: 4px; padding: 5px 8px; -webkit-overflow-scrolling: touch; }
+  #topbar .logo small { display: none; }
+  #topbar .logo { font-size: 13px; white-space: nowrap; }
+  .tb-hide-m { display: none !important; }
+  #compactBtn { display: none !important; }
+  #topbar button { padding: 5px 8px; font-size: 12px; white-space: nowrap; flex: none; }
+  #themeSel { max-width: 92px; font-size: 11px; }
+  #apiKey { display: none; }
+  #modeBar { gap: 4px; flex-wrap: wrap; }
+  #modeBar .mode-btn { padding: 4px 10px; font-size: 12px; }
+  .m-more-bar { display: flex !important; }
+  #presetBar, #charBar { margin-bottom: 4px; }
+  #inputArea { padding: 6px 8px; }
+  #chatBox { padding: 10px; }
+  .msg { max-width: 92%; }
+  .m-collapse { display: none; }
+  .m-collapse.open { display: flex; }
+}
+/* 紧凑模式（PC 可切换）：顶栏 + 输入区精简 */
+body.compact #topbar { flex-wrap: nowrap; overflow-x: auto; gap: 4px; -webkit-overflow-scrolling: touch; }
+body.compact #topbar .logo small { display: none; }
+body.compact .tb-hide-m { display: none !important; }
+body.compact #themeSel { max-width: 92px; font-size: 11px; }
+body.compact #apiKey { display: none; }
+body.compact #modeBar { gap: 4px; flex-wrap: wrap; }
+body.compact #modeBar .mode-btn { padding: 4px 10px; font-size: 12px; }
+body.compact .m-more-btn { display: inline-block !important; }
+body.compact .m-collapse { display: none; }
+body.compact .m-collapse.open { display: flex; }
+body.compact #inputArea { padding: 6px 8px; }
+body.compact #chatBox { padding: 10px; }
+body.compact .msg { max-width: 92%; }
 /* ---------- 主区 ---------- */
 #main { flex: 1; display: flex; min-height: 0; }
 /* 侧栏 */
@@ -220,17 +254,18 @@ body {
   <button onclick="newSession()">＋ 新对话</button>
   <button onclick="toggleLib()">📖 资料</button>
   <button onclick="openSearch()">🔍 搜索</button>
-  <button onclick="openSaved()">⭐ 素材</button>
+  <button class="tb-hide-m" onclick="openSaved()">⭐ 素材</button>
   <button onclick="quickCloudBackup()" title="一键备份到 GitHub 私有仓库">☁️ 备份</button>
-  <button onclick="openStats()">📊 统计</button>
-  <button id="exportBtn" onclick="toggleExportMenu()">📤 导出</button>
-  <select id="themeSel" onchange="setTheme(this.value)" title="切换主题" style="max-width:130px;">
+  <button class="tb-hide-m" onclick="openStats()">📊 统计</button>
+  <button class="tb-hide-m" id="exportBtn" onclick="toggleExportMenu()">📤 导出</button>
+  <select class="tb-hide-m" id="themeSel" onchange="setTheme(this.value)" title="切换主题" style="max-width:130px;">
     <option value="default">🌙 碧落陵·夜</option>
     <option value="nebula">🪐 星夜紫黑</option>
     <option value="paper">📜 纸墨古风</option>
     <option value="mist">🌫️ 晨雾蓝</option>
   </select>
   <button onclick="openSettings()">⚙ 设置</button>
+  <button id="compactBtn" onclick="toggleCompact()" title="切换紧凑/完整布局">⤢ 紧凑</button>
   <input id="apiKey" type="password" placeholder="DeepSeek API Key (sk-...)" onchange="saveKey()">
 </div>
 
@@ -255,9 +290,17 @@ body {
         <button class="mode-btn" data-mode="rp" onclick="setMode('rp')">🎭 梦女互动</button>
         <button class="mode-btn" data-mode="write" onclick="setMode('write')">✍️ 小说续写</button>
         <button class="mode-btn" data-mode="polish" onclick="setMode('polish')">✨ 润色</button>
-        <button style="margin-left:auto;background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="openCardBar()">🎭 设定卡</button>
+        <button class="tb-hide-m" style="margin-left:auto;background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="openCardBar()">🎭 设定卡</button>
+        <button class="tb-hide-m" style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="openPackBar()">📦 风格包</button>
+        <button class="tb-hide-m" style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="checkOOC()">🧹 人设检查</button>
+        <button class="m-more-btn" style="margin-left:auto;background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;display:none;" onclick="toggleMoreTools()">⚙ 更多</button>
+      </div>
+      <div id="moreTools" class="m-collapse" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+        <button style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="openCardBar()">🎭 设定卡</button>
         <button style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="openPackBar()">📦 风格包</button>
         <button style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="checkOOC()">🧹 人设检查</button>
+        <button style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="toggleExtraRow()">📝 额外要求</button>
+        <button style="background:var(--bg3);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="document.getElementById('fileInput').click()">📄 上传文稿</button>
       </div>
       <div id="presetBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;"></div>
       <div id="charBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;"></div>
@@ -265,7 +308,7 @@ body {
         <textarea id="prompt" placeholder="输入你的话 / 剧情走向 / 要续写的片段……" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
         <button id="sendBtn" onclick="onSendClick()">发送</button>
       </div>
-      <div id="extraRow" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+      <div id="extraRow" class="m-collapse" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
         <input id="extraPrompt" placeholder="📝 本条额外要求（只影响这次回复，发完自动清空）" style="flex:1;background:var(--bg);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:13px;">
         <span id="cardTag" style="font-size:12px;color:var(--card);"></span>
         <span id="packTag" style="font-size:12px;color:var(--gold);"></span>
@@ -514,6 +557,8 @@ let autoTitle = localStorage.getItem('hm_autotitle') !== '0';
 let theme = localStorage.getItem('hm_theme') || 'default';
 // GitHub Token（云备份用）
 let gitToken = localStorage.getItem('hm_gittoken') || '';
+// 紧凑模式（PC 端可切换）
+let compactMode = localStorage.getItem('hm_compact') === '1';
 
 const SYSTEM_SEED = `你是一位擅长撰写「闻人苍月」梦女同人小说的写手，同时也是一位出色的角色扮演者。
 故事背景：云秦帝国，碧落陵。闻人苍月——镇西大将军，圣师阶无敌的御剑圣师，枭雄，睥睨天下，但感情世界一片空白。
@@ -533,11 +578,24 @@ function setTheme(t) {
   if (sel) sel.value = theme;
   saveAll();
 }
+// 紧凑/完整布局切换（PC 端）
+function applyCompact() {
+  document.body.classList.toggle('compact', compactMode);
+  const btn = document.getElementById('compactBtn');
+  if (btn) btn.textContent = compactMode ? '⤢ 完整' : '⤢ 紧凑';
+}
+function toggleCompact() {
+  compactMode = !compactMode;
+  applyCompact();
+  saveAll();
+  toast(compactMode ? '已切换紧凑模式（顶栏/输入区精简）' : '已恢复完整布局');
+}
 function init() {
   document.documentElement.setAttribute('data-theme', theme);
   const sel = document.getElementById('themeSel');
   if (sel) sel.value = theme;
   document.getElementById('apiKey').value = apiKey;
+  applyCompact();
   // 载入会话：先同步读 localStorage 立即可用，再异步检查 IndexedDB（大容量版）
   let loaded = false;
   try { sessions = JSON.parse(localStorage.getItem('hm_sessions') || '{}'); } catch(e){ sessions = {}; }
@@ -568,6 +626,12 @@ function init() {
       menu.classList.remove('show');
     }
   });
+  // 移动端适配：窄屏显示「⚙ 更多」折叠按钮
+  if (window.innerWidth <= 760) {
+    const mb = document.querySelector('.m-more-btn');
+    if (mb) mb.style.display = '';
+    document.querySelectorAll('.modeBar-more').forEach(b => b.style.display = 'none');
+  }
   // 注册 Service Worker（PWA 离线/安装支持）
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function(){ /* 非 HTTPS 或受限环境时静默 */ });
@@ -600,6 +664,7 @@ function saveAll() {
   localStorage.setItem('hm_autotitle', autoTitle ? '1' : '0');
   localStorage.setItem('hm_theme', theme);
   localStorage.setItem('hm_gittoken', gitToken);
+  localStorage.setItem('hm_compact', compactMode ? '1' : '0');
 }
 
 function newSession() {
@@ -1039,6 +1104,19 @@ function setMode(m) {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
   renderChat();
   toast(modeHint(m));
+}
+// 移动端：显示/隐藏「更多工具」折叠区
+function toggleMoreTools() {
+  const t = document.getElementById('moreTools');
+  t.classList.toggle('open');
+  const btn = t.previousElementSibling && t.previousElementSibling.classList.contains('m-more-btn') ? t.previousElementSibling : document.querySelector('.m-more-btn');
+  if (btn) btn.textContent = t.classList.contains('open') ? '⚙ 收起' : '⚙ 更多';
+}
+// 移动端：展开/收起「额外要求」输入行
+function toggleExtraRow() {
+  const r = document.getElementById('extraRow');
+  r.classList.toggle('open');
+  if (r.classList.contains('open')) document.getElementById('extraPrompt').focus();
 }
 function modeHint(m) {
   if (m === 'rp') return '🎭 梦女互动：你就是女主，和闻人苍月对话';
