@@ -768,7 +768,7 @@ function renderChat() {
     const who = m.role === 'user' ? '你' : assistantName();
     const item = document.createElement('div');
     item.className = 'star-item';
-    item.innerHTML = `<span class="st-who">${escapeHtml(who)}</span><span class="st-snip">${escapeHtml(m.content.slice(0, 28))}</span>`;
+    item.innerHTML = `<span class="st-who">${escapeHtml(who)}</span><span class="st-snip">${escapeHtml(String(m.content == null ? '' : m.content).slice(0, 28))}</span>`;
     item.addEventListener('click', () => jumpToMsg(i));
     starBar.appendChild(item);
   });
@@ -783,11 +783,12 @@ function renderChat() {
       const name = m.role === 'user' ? '你' : assistantName();
       const starBtn = m.star ? '★' : '☆';
       const regenBtn = '<button class="regen-btn">🔄 重写</button>';
+      const content = (m.content == null ? '' : String(m.content));
       const thinkHtml = (m.role === 'assistant' && m.think) ?
         `<details class="think-box" style="margin-bottom:6px;"><summary>💭 思考过程（点击展开）</summary><div class="think-body">${escapeHtml(m.think)}</div></details>` : '';
-      div.innerHTML = `<div class="name">${escapeHtml(name)}<span class="msg-len">${m.content.length}字</span></div>${thinkHtml}<div class="content">${escapeHtml(m.content)}</div><div class="msg-tools"><button class="copy-btn">复制</button><button class="save-btn">⭐ 收藏</button><button class="edit-btn">编辑</button><button class="star-btn">${starBtn} 星标</button><button class="branch-btn">🌿 分支</button>${regenBtn}<button class="del-btn">🗑 删除</button></div>`;
+      div.innerHTML = `<div class="name">${escapeHtml(name)}<span class="msg-len">${content.length}字</span></div>${thinkHtml}<div class="content">${escapeHtml(content)}</div><div class="msg-tools"><button class="copy-btn">复制</button><button class="save-btn">⭐ 收藏</button><button class="edit-btn">编辑</button><button class="star-btn">${starBtn} 星标</button><button class="branch-btn">🌿 分支</button>${regenBtn}<button class="del-btn">🗑 删除</button></div>`;
     } else {
-      div.textContent = m.content;
+      div.textContent = m.content == null ? '' : m.content;
     }
     box.appendChild(div);
   });
@@ -1013,7 +1014,7 @@ function updateCtxBar() {
   const wrap = document.getElementById('ctxBarWrap');
   const msgs = sessions[currentId] ? sessions[currentId].messages : [];
   let total = 0;
-  (msgs.slice(-40)).forEach(m => total += m.content.length);
+  (msgs.slice(-40)).forEach(m => total += (m.content == null ? 0 : String(m.content).length));
   const est = Math.round(total * 0.7 + (buildSystem(currentMode) || '').length * 0.7);
   const pct = Math.min(100, Math.round(est / 60000 * 100));
   if (pct < 4) { wrap.classList.remove('show'); return; }
