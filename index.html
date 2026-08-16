@@ -93,23 +93,11 @@ body {
   #modeBar, #moreTools, #presetBar, #charBar, #extraRow, #uploadBar { display: none !important; }
   #modeBar.ic-open, #moreTools.ic-open, #presetBar.ic-open, #charBar.ic-open, #extraRow.ic-open, #uploadBar.ic-open { display: flex !important; }
   #uploadBar { margin-bottom: 4px; }
-  /* 图标条接管提示词/人物卡，隐藏旧的折叠头 */
-  .fold-head { display: none !important; }
-  .fold-head ~ #presetBar, .fold-head ~ #charBar { display: flex !important; }
   /* 手机端：上传栏隐藏（进更多菜单），底稿条压缩 */
   #uploadBar { display: none !important; }
   #draftBar { margin-bottom: 4px; font-size: 11px; }
-  /* 手机端：提示词/人物卡折叠为一行开关 */
-  .fold-head { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--dim); cursor: pointer; padding: 2px 8px; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 4px; width: fit-content; user-select: none; }
-  .fold-head .fold-caret { transition: transform .2s; }
-  .fold-head.open .fold-caret { transform: rotate(180deg); }
-  .fold-head ~ #presetBar, .fold-head ~ #charBar { display: none !important; }
-  .fold-head.open ~ #presetBar, .fold-head.open ~ #charBar { display: flex !important; }
 }
 /* 紧凑模式（PC 可切换）：顶栏 + 输入区精简 */
-body.compact .fold-head { display: flex; }
-body.compact .fold-head ~ #presetBar, body.compact .fold-head ~ #charBar { display: none !important; }
-body.compact .fold-head.open ~ #presetBar, body.compact .fold-head.open ~ #charBar { display: flex !important; }
 body.compact #topbar { flex-wrap: nowrap; overflow-x: auto; gap: 4px; -webkit-overflow-scrolling: touch; }
 body.compact #topbar .logo small { display: none; }
 body.compact .tb-hide-m { display: none !important; }
@@ -128,8 +116,6 @@ body.compact #uploadBar { display: none !important; }
 body.compact #iconBar { display: flex !important; gap: 2px; margin-bottom: 4px; overflow-x: auto; }
 body.compact #modeBar, body.compact #moreTools, body.compact #presetBar, body.compact #charBar, body.compact #extraRow, body.compact #uploadBar { display: none !important; }
 body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #presetBar.ic-open, body.compact #charBar.ic-open, body.compact #extraRow.ic-open, body.compact #uploadBar.ic-open { display: flex !important; }
-body.compact .fold-head { display: none !important; }
-body.compact .fold-head ~ #presetBar, body.compact .fold-head ~ #charBar { display: flex !important; }
 /* ---------- 主区 ---------- */
 #main { flex: 1; display: flex; min-height: 0; }
 /* 折叠头（提示词/人物卡）：桌面完整模式隐藏，手机/紧凑模式显示 */
