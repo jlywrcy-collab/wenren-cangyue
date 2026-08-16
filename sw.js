@@ -1,6 +1,6 @@
 // 闻人苍月 · 梦女同人写作台 — Service Worker
 // 缓存核心资源实现离线打开；网络优先，失败回退缓存
-const CACHE = 'wenren-v1';
+const CACHE = 'wenren-v2';
 const CORE = [
   './',
   './index.html',

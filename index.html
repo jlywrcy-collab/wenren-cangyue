@@ -156,7 +156,7 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
 .msg .name { font-weight: 700; margin-bottom: 4px; color: var(--gold); font-size: 13px; }
 .msg.user .name { color: #fff; }
 .msg .status { color: var(--dim); font-size: 12px; }
-.msg .msg-tools { margin-top: 6px; display: flex; gap: 6px; opacity: 0.45; transition: opacity .2s; flex-wrap: wrap; }
+.msg .msg-tools { margin-top: 6px; display: flex; gap: 6px; opacity: 0.75; transition: opacity .2s; flex-wrap: wrap; }
 .msg:hover .msg-tools { opacity: 1; }
 @media (hover: none) { .msg .msg-tools { opacity: 1; } }
 .msg .msg-tools button {
@@ -778,7 +778,7 @@ function renderChat() {
     if (m.role === 'user' || m.role === 'assistant') {
       const name = m.role === 'user' ? '你' : assistantName();
       const starBtn = m.star ? '★' : '☆';
-      const regenBtn = m.role === 'assistant' ? '<button class="regen-btn">🔄 重写</button>' : '';
+      const regenBtn = '<button class="regen-btn">🔄 重写</button>';
       const thinkHtml = (m.role === 'assistant' && m.think) ?
         `<details class="think-box" style="margin-bottom:6px;"><summary>💭 思考过程（点击展开）</summary><div class="think-body">${escapeHtml(m.think)}</div></details>` : '';
       div.innerHTML = `<div class="name">${escapeHtml(name)}<span class="msg-len">${m.content.length}字</span></div>${thinkHtml}<div class="content">${escapeHtml(m.content)}</div><div class="msg-tools"><button class="copy-btn">复制</button><button class="save-btn">⭐ 收藏</button><button class="edit-btn">编辑</button><button class="star-btn">${starBtn} 星标</button><button class="branch-btn">🌿 分支</button>${regenBtn}<button class="del-btn">🗑 删除</button></div>`;
@@ -910,18 +910,26 @@ function branchAt(idx) {
   toast('🌿 已从第' + (idx + 1) + '条开新分支');
 }
 
-// 🔄 重写：删除该条 AI 回复，用同样的上文让 AI 重新生成
+// 🔄 重写：删除该条消息及其后所有，用同样的上文让 AI 重新生成
+// - AI 回复：用其前面最近的用户消息重新生成
+// - 用户消息：用这条用户消息本身重新生成
 function regenerate(idx) {
   if (!currentId) return;
   const msgs = sessions[currentId].messages;
   if (!msgs || idx >= msgs.length) return;
-  // 找到这条回复之前最近的用户消息
+  const target = msgs[idx];
   let lastUser = null;
-  for (let i = idx - 1; i >= 0; i--) {
-    if (msgs[i].role === 'user') { lastUser = msgs[i].content; break; }
+  if (target.role === 'user') {
+    // 用户消息：重写=删掉它及其后，用这条消息内容重新发送
+    lastUser = target.content;
+  } else {
+    // AI 回复：找它前面最近的用户消息
+    for (let i = idx - 1; i >= 0; i--) {
+      if (msgs[i].role === 'user') { lastUser = msgs[i].content; break; }
+    }
   }
   if (lastUser == null) { toast('找不到可重新生成的上文'); return; }
-  // 删除该条 AI 回复及其后的所有消息
+  // 删除该条消息及其后的所有消息
   msgs.splice(idx);
   saveAll();
   renderChat();
