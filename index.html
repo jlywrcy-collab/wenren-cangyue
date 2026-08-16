@@ -264,6 +264,9 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
   #sidebar.open { left: 0; }
   #main { position: relative; }
   .msg { max-width: 92%; }
+  /* 侧栏遮罩：打开时盖住聊天区，点击关闭 */
+  #sideMask { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 49; display: none; }
+  #sidebar.open ~ #sideMask { display: block; }
 }
 </style>
 </head>
@@ -281,7 +284,7 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
   <button onclick="quickCloudBackup()" title="一键备份到 GitHub 私有仓库">☁️ 备份</button>
   <button class="tb-hide-m" onclick="openStats()">📊 统计</button>
   <button class="tb-hide-m" id="exportBtn" onclick="toggleExportMenu()">📤 导出</button>
-  <select class="tb-hide-m" id="themeSel" onchange="setTheme(this.value)" title="切换主题" style="max-width:130px;">
+  <select id="themeSel" onchange="setTheme(this.value)" title="切换主题" style="max-width:120px;font-size:11px;">
     <option value="default">🌙 碧落陵·夜</option>
     <option value="nebula">🪐 星夜紫黑</option>
     <option value="paper">📜 纸墨古风</option>
@@ -302,6 +305,7 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
       <button onclick="toggleSidebar()">收起</button>
     </div>
   </div>
+  <div id="sideMask" onclick="toggleSidebar(false)"></div>
 
   <div id="chatArea">
     <div id="starBar"><div class="star-title">⭐ 已星标消息（点击跳转）</div></div>
