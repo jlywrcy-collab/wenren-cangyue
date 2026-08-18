@@ -259,6 +259,24 @@ body.compact #modeBar.ic-open, body.compact #moreTools.ic-open, body.compact #pr
   background: var(--bg3); border: 1px solid var(--line); color: var(--txt);
   padding: 8px 18px; border-radius: 20px; font-size: 13px; display: none; z-index: 200;
 }
+/* 鲸鱼娘任务进度条（右下角悬浮） */
+#whaleProgress {
+  position: fixed; right: 14px; bottom: 14px; z-index: 190;
+  width: 230px; background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 12px; padding: 10px 12px; display: none;
+  box-shadow: 0 6px 24px rgba(0,0,0,.45); font-size: 12px;
+}
+#whaleProgress.show { display: block; }
+#whaleProgress .wp-name { color: var(--txt); font-weight: 600; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+#whaleProgress .wp-name .wp-state { font-size: 11px; color: var(--gold); }
+#whaleProgress .wp-name .wp-state.done { color: var(--ok); }
+#whaleProgress .wp-name .wp-state.error { color: var(--danger); }
+#whaleProgress .wp-bar { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+#whaleProgress .wp-bar .fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); width: 0%; transition: width .5s; }
+#whaleProgress .wp-detail { color: var(--dim); margin-top: 5px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 700px) {
+  #whaleProgress { width: 180px; right: 8px; bottom: 8px; padding: 8px 10px; font-size: 11px; }
+}
 @media (max-width: 700px) {
   #sidebar { position: fixed; left: -240px; top: 0; bottom: 0; z-index: 50; transition: left .25s; width: 240px; }
   #sidebar.open { left: 0; }
@@ -2500,6 +2518,42 @@ function jumpToMsg(idx) {
     setTimeout(function(){ target.style.outline = 'none'; }, 2000);
   }
 }
+</script>
+
+<!-- 鲸鱼娘任务进度条（右下角） -->
+<div id="whaleProgress">
+  <div class="wp-name"><span id="wpTitle">🐳 鲸鱼娘工作中</span><span class="wp-state" id="wpState">…</span></div>
+  <div class="wp-bar"><div class="fill" id="wpFill"></div></div>
+  <div class="wp-detail" id="wpDetail"></div>
+</div>
+<script>
+// 读取本地任务进度（127.0.0.1:17499，需本机运行进度服务）
+(function(){
+  var box = document.getElementById('whaleProgress');
+  var title = document.getElementById('wpTitle');
+  var state = document.getElementById('wpState');
+  var fill = document.getElementById('wpFill');
+  var detail = document.getElementById('wpDetail');
+  var lastJson = '';
+  function poll(){
+    fetch('http://127.0.0.1:17499/api/progress')
+      .then(function(r){ return r.json(); })
+      .then(function(tasks){
+        if(!tasks || !tasks.length){ box.classList.remove('show'); return; }
+        var t = tasks[0];
+        var pct = t.pct != null ? Math.round(t.pct) : (t.state==='done'?100:0);
+        title.textContent = '🐳 ' + t.name;
+        state.textContent = t.state==='done' ? '✓ 完成' : (t.state==='error' ? '✗ 出错' : pct + '%');
+        state.className = 'wp-state' + (t.state==='done'?' done':(t.state==='error'?' error':''));
+        fill.style.width = pct + '%';
+        detail.textContent = t.detail || '';
+        box.classList.add('show');
+      })
+      .catch(function(){ /* 本机服务未运行则隐藏 */ });
+  }
+  poll();
+  setInterval(poll, 2000);
+})();
 </script>
 
 </body>
