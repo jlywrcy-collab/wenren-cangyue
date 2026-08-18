@@ -1,0 +1,4 @@
+# 本地专属文件（不推送到 GitHub Pages 仓库）
+*.apk
+*梦女写作台.html
+*.html.sw.js
